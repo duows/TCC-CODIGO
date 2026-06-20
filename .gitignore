@@ -42,3 +42,6 @@ coverage/
 apps/api/prisma/migrations/dev/
 
 claude.md
+AC3_IMPLEMENTATION_GUIDE.md
+design.md
+RELATORIO_CONFORMIDADE.md
