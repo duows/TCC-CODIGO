@@ -1,0 +1,191 @@
+// =============================================================================
+// Schema Prisma — Base de Conhecimento do Sistema Especialista (Modelo Genérico EAV)
+//
+// Mapeia o Modelo de Domínio do TCC (seção 5.5) para o PostgreSQL.
+// A tripla CSP <X, D, C> é configurável via dados, sem alteração de código:
+//   X (variáveis) = Categoria  (CPU, Placa-Mãe, ...)
+//   D (domínios)  = Componente (Ryzen 5 7600, B650, ...)
+//   C (restrições)= Restricao  (par de Caracteristica + operador)
+//
+// Convenções de nomenclatura (Tabela 2 do TCC):
+//   PK  : <tabela>_PK  (gerado automaticamente pelo Prisma para @id)
+//   FK  : <t1>_<t2>_FK_nn  (referenciado no map das relações)
+//   UK  : <tabela>_UK_nn
+//   CK  : <tabela>_CK_nn
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =============================================================================
+// Marca — fabricante dos componentes
+// =============================================================================
+
+model Marca {
+  id          String       @id @default(uuid()) @map("id")
+  nome        String       @unique
+
+  componentes Componente[]
+
+  @@map("marca")
+}
+
+// =============================================================================
+// Categoria — variável do CSP (X)
+//
+// Cada linha representa uma categoria de hardware (CPU, Placa-Mãe, etc.).
+// A ordem define a sequência do wizard no frontend.
+// Adicionar uma nova categoria = inserir uma linha aqui + suas Caracteristicas.
+// =============================================================================
+
+model Categoria {
+  id              String           @id @default(uuid())
+  nome            String           @unique
+  ordem           Int
+
+  caracteristicas Caracteristica[]
+  componentes     Componente[]
+
+  @@map("categoria")
+}
+
+// =============================================================================
+// TipoCaracteristica — tipo primitivo do valor armazenado em
+// ComponenteCaracteristica.valor (sempre String no banco).
+// O motor usa este enum para saber quando converter para número.
+// =============================================================================
+
+enum TipoCaracteristica {
+  TEXTO
+  INTEIRO
+}
+
+// =============================================================================
+// Caracteristica — atributo técnico de uma categoria
+//
+// Ex.: socket, tdp, padraoMemoria, potencia, vram.
+// Os valores concretos ficam em ComponenteCaracteristica (EAV).
+// =============================================================================
+
+model Caracteristica {
+  id          String             @id @default(uuid())
+  categoriaId String
+  categoria   Categoria          @relation(fields: [categoriaId], references: [id])
+  nome        String
+  tipo        TipoCaracteristica
+
+  valores     ComponenteCaracteristica[]
+  // Restrições onde esta característica aparece no lado da demanda (car1)
+  restricoes1 Restricao[]        @relation("car1")
+  // Restrições onde esta característica aparece no lado da capacidade (car2)
+  restricoes2 Restricao[]        @relation("car2")
+
+  @@unique([categoriaId, nome], map: "caracteristica_UK_01")
+  @@map("caracteristica")
+}
+
+// =============================================================================
+// Componente — elemento do domínio D de uma variável X
+//
+// Contém apenas atributos universais (id, nome, categoria, marca).
+// Atributos técnicos específicos (socket, tdp, potencia…) são armazenados
+// em ComponenteCaracteristica (EAV), permitindo adicionar novas categorias
+// sem alterar este modelo.
+// =============================================================================
+
+model Componente {
+  id          String                   @id @default(uuid())
+  categoriaId String
+  categoria   Categoria                @relation(fields: [categoriaId], references: [id])
+  marcaId     String
+  marca       Marca                    @relation(fields: [marcaId], references: [id])
+  nome        String
+
+  caracteristicas ComponenteCaracteristica[]
+
+  @@map("componente")
+}
+
+// =============================================================================
+// ComponenteCaracteristica — valor EAV
+//
+// Armazena o valor de uma Caracteristica para um Componente específico.
+// O campo `valor` é sempre String; o motor converte para número quando
+// Caracteristica.tipo === INTEIRO.
+// =============================================================================
+
+model ComponenteCaracteristica {
+  id               String         @id @default(uuid())
+  componenteId     String
+  componente       Componente     @relation(fields: [componenteId], references: [id])
+  caracteristicaId String
+  caracteristica   Caracteristica @relation(fields: [caracteristicaId], references: [id])
+  valor            String
+
+  @@unique([componenteId, caracteristicaId], map: "comp_car_UK_01")
+  @@map("componente_caracteristica")
+}
+
+// =============================================================================
+// OperadorRestricao — tipo de comparação binária do motor AC-3
+//
+// IGUAL          : val1 === val2 (string — socket, padrão DDR)
+// MAIOR_OU_IGUAL : Number(val2) >= Number(val1) * Number(parametro)
+//                  Convenção: car1 = lado da DEMANDA/CONSUMO
+//                             car2 = lado da CAPACIDADE/OFERTA
+//                  Ex.: car1=tdp(CPU), car2=potencia(Fonte), parametro="1.25"
+//                  → potencia >= tdp * 1.25
+// =============================================================================
+
+enum OperadorRestricao {
+  IGUAL
+  MAIOR_OU_IGUAL
+}
+
+// =============================================================================
+// Restricao — aresta do grafo de restrições (conjunto C do CSP)
+//
+// Cada linha representa uma restrição binária entre duas Caracteristicas
+// (de categorias possivelmente diferentes). O motor AC-3 constrói o grafo
+// dinamicamente a partir desta tabela — sem if/else hardcoded por tipo.
+//
+// templateJustificativa: template em linguagem natural com placeholders:
+//   {comp1.nome}      — nome do componente no lado car1
+//   {val1}            — valor de car1 no componente 1
+//   {comp2.nome}      — nome do componente no lado car2
+//   {val2}            — valor de car2 no componente 2
+//   {val1_com_margem} — Math.round(Number(val1) * Number(parametro))
+//                       (apenas para MAIOR_OU_IGUAL)
+//
+// RNF-07: adicionar nova restrição = inserir linha aqui, sem alteração de código.
+// =============================================================================
+
+model Restricao {
+  id                    String            @id @default(uuid())
+
+  /// Característica do lado da demanda/consumo (car1)
+  caracteristica1Id     String
+  caracteristica1       Caracteristica    @relation("car1", fields: [caracteristica1Id], references: [id])
+
+  /// Característica do lado da capacidade/oferta (car2)
+  caracteristica2Id     String
+  caracteristica2       Caracteristica    @relation("car2", fields: [caracteristica2Id], references: [id])
+
+  operador              OperadorRestricao
+
+  /// Fator multiplicador para MAIOR_OU_IGUAL (ex.: "1.25").
+  /// Nulo para IGUAL.
+  parametro             String?
+
+  /// Template da justificativa educativa (RF-10).
+  /// Texto completo vindo do dado — nenhum termo técnico no código.
+  templateJustificativa String
+
+  @@map("restricao")
+}

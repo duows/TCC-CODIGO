@@ -1,0 +1,18 @@
+{
+  "name": "@hardware-csp/shared-types",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "tsc --noEmit",
+    "clean": "rm -rf dist .turbo"
+  },
+  "devDependencies": {
+    "@hardware-csp/tsconfig": "workspace:*",
+    "typescript": "^5.6.3"
+  }
+}

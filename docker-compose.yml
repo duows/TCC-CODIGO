@@ -1,0 +1,22 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: hardware-csp-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: hardware_csp
+      POSTGRES_PASSWORD: hardware_csp_dev
+      POSTGRES_DB: hardware_csp
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hardware_csp -d hardware_csp"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+    name: hardware-csp-postgres-data

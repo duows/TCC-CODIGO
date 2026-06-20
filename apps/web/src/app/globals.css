@@ -1,0 +1,69 @@
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  color: rgb(var(--foreground));
+  background: rgb(var(--background));
+  font-family: -apple-system, BlinkMacSystemFont, "Geist", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@layer base {
+  :root {
+    /* Apple system colors */
+    --background: oklch(1 0 0);                    /* #FFFFFF */
+    --foreground: oklch(0.147 0 0);                /* #1D1D1F */
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.147 0 0);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.147 0 0);
+    --primary: oklch(0.532 0.222 259);             /* #007AFF */
+    --primary-foreground: oklch(1 0 0);
+    --secondary: oklch(0.971 0 0);                 /* #F5F5F7 */
+    --secondary-foreground: oklch(0.147 0 0);
+    --muted: oklch(0.971 0 0);                     /* #F5F5F7 */
+    --muted-foreground: oklch(0.49 0 0);           /* #6E6E73 */
+    --accent: oklch(0.971 0 0);
+    --accent-foreground: oklch(0.147 0 0);
+    --destructive: oklch(0.594 0.23 22.3);         /* #FF3B30 */
+    --border: oklch(0.921 0 0);                    /* #E5E5EA */
+    --input: oklch(0.921 0 0);
+    --ring: oklch(0.532 0.222 259);                /* #007AFF */
+    --success: oklch(0.719 0.18 144.5);            /* #34C759 */
+    --radius: 0.75rem;
+    --sidebar: oklch(0.985 0 0);
+    --sidebar-foreground: oklch(0.147 0 0);
+    --sidebar-primary: oklch(0.532 0.222 259);
+    --sidebar-primary-foreground: oklch(1 0 0);
+    --sidebar-accent: oklch(0.971 0 0);
+    --sidebar-accent-foreground: oklch(0.147 0 0);
+    --sidebar-border: oklch(0.921 0 0);
+    --sidebar-ring: oklch(0.532 0.222 259);
+  }
+
+  * {
+    border-color: var(--border);
+    outline-color: color-mix(in oklch, var(--ring) 50%, transparent);
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  html {
+    @apply font-sans;
+  }
+}
+
+@layer utilities {
+  .scrollbar-none {
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+}
