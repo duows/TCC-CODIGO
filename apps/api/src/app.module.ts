@@ -6,6 +6,7 @@ import { ComponentsModule } from './components/components.module';
 import { CspModule } from './csp/csp.module';
 import { ExplanationsModule } from './explanations/explanations.module';
 import { ConfigurationsModule } from './configurations/configurations.module';
+import { RestricoesModule } from './restricoes/restricoes.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { ConfigurationsModule } from './configurations/configurations.module';
     CspModule,
     ExplanationsModule,
     ConfigurationsModule,
+    RestricoesModule,
   ],
 })
 export class AppModule {}

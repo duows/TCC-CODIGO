@@ -90,6 +90,23 @@ export interface RespostaValidacao {
 // Payload da requisição de validação
 // ===========================================================================
 
+/**
+ * `ajustes` mapeia restricaoId → parametro sobrescrito (mesma convenção de
+ * string do campo `Restricao.parametro`). Usado para permitir que o usuário
+ * ajuste, por exemplo, a margem de segurança de potência (RF-XX) sem alterar
+ * o valor padrão cadastrado no banco.
+ */
 export interface RequisicaoValidacao {
   estado: EstadoConfiguracao;
+  ajustes?: Record<string, string>;
+}
+
+// ===========================================================================
+// Restrição ajustável — restrições MAIOR_OU_IGUAL cujo parametro pode ser
+// sobrescrito pelo usuário por requisição (ex.: margem de segurança da fonte)
+// ===========================================================================
+
+export interface RestricaoAjustavel {
+  id: string;
+  parametroPadrao: string;
 }

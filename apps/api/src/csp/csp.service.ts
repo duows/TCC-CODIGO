@@ -34,30 +34,33 @@ export class CspService {
     private readonly explanations: ExplanationsService,
   ) {}
 
-  async validar(estado: EstadoConfiguracao): Promise<RespostaValidacao> {
+  async validar(
+    estado: EstadoConfiguracao,
+    ajustes?: Record<string, string>,
+  ): Promise<RespostaValidacao> {
     const inicio = performance.now();
 
     // 1) Carregar restrições da base de conhecimento
     const restricoes = await this.carregarRestricoes();
-    console.log('[DEBUG CSP] Restrições carregadas (%d):', restricoes.length, restricoes.map((r) => ({ // DEBUG
-      id: r.id, varDemanda: r.variavelDemanda, varCapacidade: r.variavelCapacidade, // DEBUG
-      operador: r.operador, parametro: r.parametro, // DEBUG
-    }))); // DEBUG
+
+    // 1b) Aplicar sobrescritas de parametro enviadas pelo usuário (ex.: margem
+    //     de segurança da fonte). Entradas inválidas ou fora do dominio de um
+    //     multiplicador (>= 1) são ignoradas, mantendo o padrão do banco.
+    if (ajustes) {
+      for (const r of restricoes) {
+        const override = ajustes[r.id];
+        if (override === undefined) continue;
+        const valor = Number(override);
+        if (!Number.isFinite(valor) || valor < 1) continue;
+        r.parametro = override;
+      }
+    }
 
     // 2) Carregar domínios iniciais (um por categoria, colapso se já atribuído)
-    console.log('[DEBUG CSP] Estado recebido:', estado); // DEBUG
     const variaveis = await this.carregarVariaveis(estado);
-    console.log('[DEBUG CSP] Variáveis (domínios iniciais):', variaveis.map((v) => ({ // DEBUG
-      categoriaId: v.categoriaId, tamanho: v.dominio.size, // DEBUG
-      componentes: Array.from(v.dominio.values()).map((c) => c.nome), // DEBUG
-    }))); // DEBUG
 
     // 3) Propagar restrições via AC-3
     const resultado = ac3(variaveis, restricoes);
-    console.log('[DEBUG CSP] Resultado AC-3: consistente=%s, removidos=%d', resultado.consistente, resultado.removidos.length); // DEBUG
-    console.log('[DEBUG CSP] Removidos:', resultado.removidos.map((r) => ({ // DEBUG
-      categoria: r.categoriaId, componente: r.componente.nome, restricaoOp: r.restricaoViolada.operador, // DEBUG
-    }))); // DEBUG
 
     // 3b) Complementação simétrica — quando AMBOS os lados de uma violação são
     //     selecionados pelo usuário, o lado âncora também deve ser marcado.
@@ -84,15 +87,9 @@ export class CspService {
       variaveis.find((v) => v.categoriaId === comp.categoriaId)?.dominio.delete(comp.componenteId);
     }
     const todosRemovedos = [...resultado.removidos, ...complementRemovals];
-    console.log('[DEBUG CSP] Complementos simétricos (%d):', complementRemovals.length, complementRemovals.map((r) => ({ // DEBUG
-      categoria: r.categoriaId, componente: r.componente.nome, // DEBUG
-    }))); // DEBUG
 
     // 4) Gerar justificativas educativas (RF-10)
     const justificativas = this.explanations.gerarJustificativas(todosRemovedos);
-    console.log('[DEBUG CSP] Justificativas (%d):', justificativas.length, justificativas.map((j) => ({ // DEBUG
-      categoria: j.categoriaId, bloqueado: j.componenteBloqueado, msg: j.mensagem.slice(0, 80), // DEBUG
-    }))); // DEBUG
 
     // 5) Empacotar resposta
     const dominios: DominioVariavel[] = resultado.variaveis.map((v) => {
@@ -112,10 +109,6 @@ export class CspService {
 
     const selectedIds = new Set(Object.values(estado));
     const novaConsistente = !todosRemovedos.some((r) => selectedIds.has(r.componenteId));
-    console.log('[DEBUG CSP] Resposta final:', { // DEBUG
-      consistente: novaConsistente, // DEBUG
-      dominios: dominios.map((d) => ({ cat: d.categoriaId, validos: d.valoresValidos.length, bloqueados: d.valoresBloqueados.length })), // DEBUG
-    }); // DEBUG
     return {
       consistente: novaConsistente,
       dominios,

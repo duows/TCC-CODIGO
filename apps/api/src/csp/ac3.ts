@@ -74,14 +74,11 @@ export function ac3(
   }
 
   const fila: Arco[] = inicializarFila(restricoes);
-  console.log('[DEBUG AC3] Fila inicial: %d arcos', fila.length); // DEBUG
-  fila.forEach((a, i) => console.log('[DEBUG AC3]   [%d] %s → %s | op=%s param=%s', i, a.origem, a.destino, a.restricao.operador, a.restricao.parametro)); // DEBUG
+  const listaAdjacencia = construirListaAdjacencia(restricoes);
 
   while (fila.length > 0) {
     const arco = fila.shift()!;
-    console.log('[DEBUG AC3] Processando: %s → %s | op=%s | fila restante: %d', arco.origem, arco.destino, arco.restricao.operador, fila.length); // DEBUG
     const removidosNesteArco = revisar(arco, variaveis);
-    console.log('[DEBUG AC3] Removidos neste arco: %d', removidosNesteArco.length); // DEBUG
 
     if (removidosNesteArco.length === 0) continue;
 
@@ -89,18 +86,16 @@ export function ac3(
 
     const dominioOrigem = getDominio(variaveis, arco.origem);
     if (!dominioOrigem || dominioOrigem.size === 0) {
-      console.log('[DEBUG AC3] Domínio de %s vazio — continuando fila (%d arcos restantes)', arco.origem, fila.length); // DEBUG
       continue;
     }
 
     // Reinserir arcos (Xk → Xi) para cada vizinho Xk de Xi, Xk ≠ Xj.
-    for (const vizinho of arcosVizinhos(arco.origem, arco.destino, restricoes)) {
+    for (const vizinho of arcosVizinhos(arco.origem, arco.destino, listaAdjacencia)) {
       fila.push(vizinho);
     }
   }
 
   const consistente = variaveis.every((v) => v.dominio.size > 0);
-  console.log('[DEBUG AC3] Fila vazia — consistente=%s', consistente); // DEBUG
   return { consistente, variaveis, removidos };
 }
 
@@ -142,7 +137,6 @@ function revisar(arco: Arco, variaveis: VariavelCSP[]): ValorRemovido[] {
 
   const arcoReverso = arco.origem === arco.restricao.variavelCapacidade;
   const valoresDestino = Array.from(varDestino.dominio.values());
-  console.log('[DEBUG AC3]   revisar: origem=%s (%d vals) → destino=%s (%d vals) reverso=%s', arco.origem, varOrigem.dominio.size, arco.destino, varDestino.dominio.size, arcoReverso); // DEBUG
   if (valoresDestino.length === 0) return removidos;
 
   for (const v of Array.from(varOrigem.dominio.values())) {
@@ -152,7 +146,6 @@ function revisar(arco: Arco, variaveis: VariavelCSP[]): ValorRemovido[] {
         : avaliarRestricao(v, w, arco.restricao),
     );
 
-    console.log('[DEBUG AC3]     val=%s temSuporte=%s', v.nome, temSuporte); // DEBUG
     if (!temSuporte) {
       varOrigem.dominio.delete(v.id);
       removidos.push({
@@ -172,23 +165,49 @@ function revisar(arco: Arco, variaveis: VariavelCSP[]): ValorRemovido[] {
 }
 
 /**
- * Gera arcos (Xk → Xi) para cada vizinho Xk de Xi, excluindo Xj.
- * Vizinhos são derivados das restrições onde Xi aparece como variavelDemanda ou variavelCapacidade.
+ * Lista de adjacência do grafo de restrições (Capítulo 2 do TCC): para cada
+ * variável Xi, os arcos (Xk → Xi) que a afetam. Construída uma única vez por
+ * execução do ac3(), permitindo consulta O(grau(Xi)) em vez da varredura
+ * O(|restricoes|) anterior.
+ */
+type ListaAdjacencia = Map<string, Arco[]>;
+
+/**
+ * Constrói a lista de adjacência a partir das restrições do grafo.
+ *
+ * Para cada restrição, o arco (capacidade → demanda) sempre entra na lista
+ * da variável demanda. O arco (demanda → capacidade) só é adicionado à parte
+ * quando as duas variáveis são distintas — isso evita duplicar o mesmo arco
+ * em restrições "self-loop" (variavelDemanda === variavelCapacidade),
+ * reproduzindo fielmente a precedência if/else da varredura original.
+ */
+function construirListaAdjacencia(restricoes: RestricaoInterna[]): ListaAdjacencia {
+  const mapa: ListaAdjacencia = new Map();
+  const adicionar = (chave: string, arco: Arco) => {
+    const lista = mapa.get(chave);
+    if (lista) lista.push(arco);
+    else mapa.set(chave, [arco]);
+  };
+
+  for (const r of restricoes) {
+    adicionar(r.variavelDemanda, { origem: r.variavelCapacidade, destino: r.variavelDemanda, restricao: r });
+    if (r.variavelDemanda !== r.variavelCapacidade) {
+      adicionar(r.variavelCapacidade, { origem: r.variavelDemanda, destino: r.variavelCapacidade, restricao: r });
+    }
+  }
+  return mapa;
+}
+
+/**
+ * Retorna os arcos (Xk → Xi) para cada vizinho Xk de Xi, excluindo Xj.
+ * Consulta a lista de adjacência em vez de varrer todas as restrições.
  */
 function arcosVizinhos(
   origem: string,
   excluir: string,
-  restricoes: RestricaoInterna[],
+  listaAdjacencia: ListaAdjacencia,
 ): Arco[] {
-  const arcos: Arco[] = [];
-  for (const r of restricoes) {
-    if (r.variavelDemanda === origem && r.variavelCapacidade !== excluir) {
-      arcos.push({ origem: r.variavelCapacidade, destino: origem, restricao: r });
-    } else if (r.variavelCapacidade === origem && r.variavelDemanda !== excluir) {
-      arcos.push({ origem: r.variavelDemanda, destino: origem, restricao: r });
-    }
-  }
-  return arcos;
+  return (listaAdjacencia.get(origem) ?? []).filter((a) => a.origem !== excluir);
 }
 
 function getVariavel(variaveis: VariavelCSP[], categoriaId: string): VariavelCSP | undefined {

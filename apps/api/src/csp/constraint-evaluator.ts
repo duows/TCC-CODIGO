@@ -29,22 +29,16 @@ export function avaliarRestricao(
   const val1 = getValor(valorVar1, restricao.caracteristica1Id);
   const val2 = getValor(valorVar2, restricao.caracteristica2Id);
 
-  console.log('[DEBUG EVAL] comp1=%s val1=%s | comp2=%s val2=%s | op=%s param=%s', valorVar1.nome, val1, valorVar2.nome, val2, restricao.operador, restricao.parametro); // DEBUG
-
   // Sem dados suficientes → não bloqueia (dados faltantes não geram erro)
   if (val1 === undefined || val2 === undefined) return true;
 
   if (restricao.operador === 'IGUAL') {
-    const resultado = val1 === val2; // DEBUG
-    console.log('[DEBUG EVAL] IGUAL: "%s" === "%s" → %s', val1, val2, resultado); // DEBUG
-    return resultado; // DEBUG
+    return val1 === val2;
   }
 
   // MAIOR_OU_IGUAL: val2 (capacidade) >= val1 (demanda) * parametro
   const parametro = Number(restricao.parametro ?? '1');
-  const resultado = Number(val2) >= Number(val1) * parametro; // DEBUG
-  console.log('[DEBUG EVAL] MAIOR_OU_IGUAL: %s >= %s × %s → %s', val2, val1, parametro, resultado); // DEBUG
-  return resultado; // DEBUG
+  return Number(val2) >= Number(val1) * parametro;
 }
 
 function getValor(componente: Componente, caracteristicaId: string): string | undefined {

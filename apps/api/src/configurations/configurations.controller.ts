@@ -18,6 +18,6 @@ export class ConfigurationsController {
    */
   @Post('validate')
   async validar(@Body() dto: ValidarConfiguracaoDto): Promise<RespostaValidacao> {
-    return this.csp.validar(dto.estado);
+    return this.csp.validar(dto.estado, dto.ajustes);
   }
 }

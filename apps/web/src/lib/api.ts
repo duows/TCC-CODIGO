@@ -3,6 +3,7 @@ import type {
   Componente,
   EstadoConfiguracao,
   RespostaValidacao,
+  RestricaoAjustavel,
 } from '@hardware-csp/shared-types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api';
@@ -26,13 +27,22 @@ export const api = {
     return res.json();
   },
 
-  async validarConfiguracao(estado: EstadoConfiguracao): Promise<RespostaValidacao> {
+  async validarConfiguracao(
+    estado: EstadoConfiguracao,
+    ajustes?: Record<string, string>,
+  ): Promise<RespostaValidacao> {
     const res = await fetch(`${API_URL}/configurations/validate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ estado }),
+      body: JSON.stringify(ajustes ? { estado, ajustes } : { estado }),
     });
     if (!res.ok) throw new Error('Falha ao validar configuração');
+    return res.json();
+  },
+
+  async listarRestricoesAjustaveis(): Promise<RestricaoAjustavel[]> {
+    const res = await fetch(`${API_URL}/restricoes/ajustaveis`);
+    if (!res.ok) throw new Error('Falha ao listar restrições ajustáveis');
     return res.json();
   },
 };

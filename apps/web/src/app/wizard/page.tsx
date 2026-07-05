@@ -24,8 +24,10 @@ import type {
   RespostaValidacao,
   Componente,
   JustificativaEducativa,
+  RestricaoAjustavel,
 } from '@hardware-csp/shared-types';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
+import { Slider } from '@/components/ui/slider';
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -72,6 +74,45 @@ function getBrandColors(brand: string) {
   return BRAND_COLORS[brand.toLowerCase()] ?? { bg: '#F5F5F5', text: '#555555' };
 }
 
+// Conversão entre o multiplicador armazenado (Restricao.parametro, ex.: "1.25")
+// e o percentual exibido ao usuário (ex.: 25).
+function parametroParaPercentual(parametro: string): number {
+  return Math.round((Number(parametro) - 1) * 100);
+}
+
+function percentualParaParametro(percentual: number): string {
+  return String(1 + percentual / 100);
+}
+
+// ── MargemFonteControl ───────────────────────────────────────────────────────
+
+interface MargemFonteControlProps {
+  percentual: number;
+  onChange: (percentual: number) => void;
+}
+
+function MargemFonteControl({ percentual, onChange }: MargemFonteControlProps) {
+  return (
+    <div className="flex items-center gap-3 shrink-0" title="Margem de segurança aplicada ao dimensionamento da fonte">
+      <span className="text-[12px] font-medium text-[#6E6E73] whitespace-nowrap">
+        Margem de segurança da fonte
+      </span>
+      <Slider
+        className="w-[110px]"
+        min={0}
+        max={100}
+        step={5}
+        value={[percentual]}
+        onValueChange={(valores) => onChange(valores[0] ?? percentual)}
+        aria-label="Margem de segurança da fonte"
+      />
+      <span className="text-[12px] font-bold text-[#007AFF] bg-blue-50 border border-blue-100 px-2 py-1 rounded-full min-w-[42px] text-center">
+        {percentual}%
+      </span>
+    </div>
+  );
+}
+
 // ── ResumoPanel ──────────────────────────────────────────────────────────────
 
 interface ResumoPanelProps {
@@ -88,11 +129,15 @@ interface ResumoPanelProps {
  */
 const CARACTERISTICA_CONSUMO = 'tdp';
 
-function ResumoPanel({ categorias, estado, catalogoTotal, incompativeisIds }: ResumoPanelProps) {
-  const selectionCount = categorias.filter((cat) => estado[cat.id] !== undefined).length;
-
-  // RF-16: consumo total estimado = somatório do TDP (W) dos selecionados.
-  const consumoTotalW = categorias.reduce((soma, cat) => {
+// RF-16: consumo total estimado = somatório do TDP (W) dos selecionados.
+// Única fonte de verdade — usada tanto pela sidebar (ResumoPanel) quanto pela
+// tela de resumo final, para que ambas exibam sempre o mesmo número.
+function calcularConsumoTotalW(
+  categorias: CategoriaInfo[],
+  estado: EstadoConfiguracao,
+  catalogoTotal: Map<string, Componente>,
+): number {
+  return categorias.reduce((soma, cat) => {
     const compId = estado[cat.id];
     const comp = compId !== undefined ? catalogoTotal.get(compId) : undefined;
     if (!comp) return soma;
@@ -102,6 +147,11 @@ function ResumoPanel({ categorias, estado, catalogoTotal, incompativeisIds }: Re
     const watts = carConsumo ? Number(carConsumo.valor) : NaN;
     return Number.isFinite(watts) ? soma + watts : soma;
   }, 0);
+}
+
+function ResumoPanel({ categorias, estado, catalogoTotal, incompativeisIds }: ResumoPanelProps) {
+  const selectionCount = categorias.filter((cat) => estado[cat.id] !== undefined).length;
+  const consumoTotalW = calcularConsumoTotalW(categorias, estado, catalogoTotal);
 
   return (
     <div className="bg-white rounded-2xl border border-[#E5E5EA] overflow-hidden shadow-sm">
@@ -346,6 +396,8 @@ export default function WizardPage() {
   const [carregando, setCarregando] = useState(false);
   const [componentes, setComponentes] = useState<Componente[]>([]);
   const [catalogoTotal, setCatalogoTotal] = useState<Map<string, Componente>>(new Map());
+  const [restricoesAjustaveis, setRestricoesAjustaveis] = useState<RestricaoAjustavel[]>([]);
+  const [margemFonte, setMargemFonte] = useState<number | null>(null);
 
   const categoriaAtual: CategoriaInfo | undefined = categorias[etapa];
   const modoResumo = categorias.length > 0 && etapa >= categorias.length;
@@ -359,15 +411,33 @@ export default function WizardPage() {
   }, []);
 
   useEffect(() => {
+    api
+      .listarRestricoesAjustaveis()
+      .then((lista) => {
+        setRestricoesAjustaveis(lista);
+        if (lista.length > 0) {
+          setMargemFonte((prev) => prev ?? parametroParaPercentual(lista[0]!.parametroPadrao));
+        }
+      })
+      .catch((e) => console.error('Erro ao listar restrições ajustáveis:', e));
+  }, []);
+
+  useEffect(() => {
     let cancelado = false;
     setCarregando(true);
+    const ajustes =
+      margemFonte !== null && restricoesAjustaveis.length > 0
+        ? Object.fromEntries(
+            restricoesAjustaveis.map((r) => [r.id, percentualParaParametro(margemFonte)]),
+          )
+        : undefined;
     api
-      .validarConfiguracao(estado)
+      .validarConfiguracao(estado, ajustes)
       .then((r) => { if (!cancelado) setValidacao(r); })
       .catch((e) => console.error('Erro na validação:', e))
       .finally(() => { if (!cancelado) setCarregando(false); });
     return () => { cancelado = true; };
-  }, [estado]);
+  }, [estado, margemFonte, restricoesAjustaveis]);
 
   useEffect(() => {
     if (!categoriaAtual) return;
@@ -395,6 +465,8 @@ export default function WizardPage() {
     if (existing) { existing.push(b.justificativa); }
     else { blockedMap.set(b.componenteId, [b.justificativa]); }
   }
+
+  const consumoTotalW = calcularConsumoTotalW(categorias, estado, catalogoTotal);
 
   // For each category, check if the selected component is blocked (selected-invalid state).
   // Used by the sidebar ResumoPanel and the summary screen.
@@ -480,9 +552,14 @@ export default function WizardPage() {
                 Monte sua build — cada etapa valida compatibilidade em tempo real
               </p>
             </div>
-            <span className="text-[12px] font-medium text-[#AEAEB2] mt-1 whitespace-nowrap shrink-0">
-              {modoResumo ? 'Resumo final' : `Etapa ${etapa + 1} de ${categorias.length}`}
-            </span>
+            <div className="flex items-center gap-4 flex-wrap justify-end">
+              {restricoesAjustaveis.length > 0 && margemFonte !== null && (
+                <MargemFonteControl percentual={margemFonte} onChange={setMargemFonte} />
+              )}
+              <span className="text-[12px] font-medium text-[#AEAEB2] mt-1 whitespace-nowrap shrink-0">
+                {modoResumo ? 'Resumo final' : `Etapa ${etapa + 1} de ${categorias.length}`}
+              </span>
+            </div>
           </div>
 
           {/* Progress bar */}
@@ -552,6 +629,13 @@ export default function WizardPage() {
                 Inconsistências detectadas
               </span>
             )}
+          </div>
+
+          <div className="bg-white rounded-2xl border border-[#E5E5EA] shadow-sm flex items-center justify-between px-5 py-4 mb-8">
+            <span className="text-[13px] font-medium text-[#6E6E73]">Consumo estimado</span>
+            <span className="text-[20px] font-bold tracking-tight text-[#1D1D1F]">
+              {consumoTotalW === 0 ? '—' : `${consumoTotalW} W`}
+            </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8">

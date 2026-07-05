@@ -3,7 +3,7 @@ import { CategoriasService } from './categorias.service';
 
 @Controller('categorias')
 export class CategoriasController {
-  constructor(private readonly service: CategoriasService) {}
+  constructor(private readonly service: CategoriasService) { }
 
   /**
    * GET /api/categorias

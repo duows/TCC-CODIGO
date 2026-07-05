@@ -10,4 +10,12 @@ import type { EstadoConfiguracao } from '@hardware-csp/shared-types';
 export class ValidarConfiguracaoDto {
   @IsObject()
   estado!: EstadoConfiguracao;
+
+  /**
+   * restricaoId → parametro sobrescrito (ex.: margem de segurança da fonte).
+   * Opcional — restrições não listadas aqui usam o parametro padrão do banco.
+   */
+  @IsOptional()
+  @IsObject()
+  ajustes?: Record<string, string>;
 }
