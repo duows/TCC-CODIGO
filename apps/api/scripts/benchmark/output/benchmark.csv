@@ -1,0 +1,29 @@
+regime,d,motor,combinacoes_totais_teoricas,checagens_avaliadas,tempo_ms_mediano,espaco_residual,configuracoes_validas,concluido,observacao
+irrestrito,10,ac3,100000,118,0.0927,100000,,true,
+irrestrito,10,forca_bruta,100000,152000,5.5860,,12350,true,
+irrestrito,25,ac3,9765625,302,0.0387,9765625,,true,
+irrestrito,25,forca_bruta,9765625,14635000,510.5478,,1074748,true,
+irrestrito,50,ac3,312500000,608,0.0763,312500000,,true,
+irrestrito,50,forca_bruta,312500000,150000000,5183.0570,,11525000,false,abortado no teto (valores parciais)
+irrestrito,75,ac3,2373046875,915,0.1010,2373046875,,true,
+irrestrito,75,forca_bruta,2373046875,150501250,5191.5751,,11228585,false,abortado no teto (valores parciais)
+irrestrito,100,ac3,10000000000,1225,0.1281,10000000000,,true,
+irrestrito,100,forca_bruta,10000000000,150000000,5443.8061,,11031250,false,abortado no teto (valores parciais)
+irrestrito,250,ac3,976562500000,3058,0.2884,976562500000,,true,
+irrestrito,250,forca_bruta,976562500000,162500000,6014.2669,,13891000,false,abortado no teto (valores parciais)
+irrestrito,500,ac3,31250000000000,6125,0.6370,31250000000000,,true,
+irrestrito,500,forca_bruta,31250000000000,226494944,10076.5771,,33457221,false,abortado no teto (valores parciais)
+selecao_parcial,10,ac3,100000,71,0.0379,1500,,true,
+selecao_parcial,10,forca_bruta,100000,16000,0.5583,,1425,true,
+selecao_parcial,25,ac3,9765625,211,0.0303,45000,,true,
+selecao_parcial,25,forca_bruta,9765625,574375,21.2559,,40032,true,
+selecao_parcial,50,ac3,312500000,591,0.0550,812500,,true,
+selecao_parcial,50,forca_bruta,312500000,9500000,344.1820,,749125,true,
+selecao_parcial,75,ac3,2373046875,1118,0.0821,3954375,,true,
+selecao_parcial,75,forca_bruta,2373046875,47565000,1711.3877,,3525545,true,
+selecao_parcial,100,ac3,10000000000,1778,0.2167,12500000,,true,
+selecao_parcial,100,forca_bruta,10000000000,150000000,5433.3017,,11031250,false,abortado no teto (valores parciais)
+selecao_parcial,250,ac3,976562500000,9191,0.2942,492187500,,true,
+selecao_parcial,250,forca_bruta,976562500000,162500000,6148.7523,,13891000,false,abortado no teto (valores parciais)
+selecao_parcial,500,ac3,31250000000000,33878,1.2221,7812500000,,true,
+selecao_parcial,500,forca_bruta,31250000000000,100000000,2830.5191,,0,false,abortado no teto (valores parciais)

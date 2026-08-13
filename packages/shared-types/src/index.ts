@@ -79,10 +79,35 @@ export interface DominioVariavel {
   }>;
 }
 
+/**
+ * Alerta de capacidade agregada (pós-condição, RF-XX) — violação de uma soma
+ * de demandas (ex.: TDP de CPU + GPU) contra uma capacidade compartilhada
+ * (ex.: potência da fonte), derivada de restrições MAIOR_OU_IGUAL que
+ * compartilham a mesma característica de capacidade.
+ *
+ * Estruturalmente distinto de `JustificativaEducativa`: esta é uma
+ * propriedade do CONJUNTO de componentes selecionados, não de um único
+ * componente bloqueado com no máximo uma âncora. Por isso não reaproveita
+ * o mesmo tipo nem o campo `justificativas` — ver csp.service.ts.
+ */
+export interface AlertaAgregado {
+  /** Característica de capacidade violada (ex.: potencia da fonte). */
+  caracteristicaCapacidadeId: string;
+  /** Componente que fornece a capacidade (ex.: a fonte escolhida). */
+  componenteCapacidade: { id: string; categoriaId: string; nome: string };
+  /** Componentes que compõem a demanda somada. */
+  componentesDemanda: Array<{ id: string; categoriaId: string; nome: string; valor: number }>;
+  demandaTotal: number;
+  demandaComMargem: number;
+  capacidadeDisponivel: number;
+  mensagem: string;
+}
+
 export interface RespostaValidacao {
   consistente: boolean;
   dominios: DominioVariavel[];
   justificativas: JustificativaEducativa[];
+  alertasAgregados: AlertaAgregado[];
   tempoExecucaoMs: number;
 }
 

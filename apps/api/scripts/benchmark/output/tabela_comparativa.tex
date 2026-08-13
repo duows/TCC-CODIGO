@@ -1,0 +1,21 @@
+\begin{table}[htbp]
+  \centering
+  \caption{Comparação dos dois regimes para $d=50$. Sem seleção, o espaço residual do AC-3 iguala $d^5$ (ganho puramente algorítmico, menos checagens); com seleção parcial, a poda propagada reduz o residual em ordens de magnitude.}
+  \label{tab:bench-comparativa}
+  \resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{%
+    \begin{tabular}{lrr}
+      \toprule
+      Métrica & Irrestrito & Seleção parcial \\
+      \midrule
+      Espaço residual (AC-3) & \num{3.13e8} & \num{812500} \\
+      $d^5$ (teórico) & \num{3.13e8} & \num{3.13e8} \\
+      AC-3 checagens & \num{608} & \num{591} \\
+      AC-3 tempo (ms) & \num{0.076} & \num{0.055} \\
+      FB checagens & \num{1.50e8} & \num{9.50e6} \\
+      FB concl. & não & sim \\
+      FB config.\ válidas & --- & \num{749125} \\
+      \bottomrule
+    \end{tabular}%
+  }
+  \fonte{Elaborada pelo autor}
+\end{table}

@@ -15,6 +15,7 @@ import {
   Package,
   ChevronRight,
   RotateCcw,
+  AlertTriangle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { api } from '@/lib/api';
@@ -25,6 +26,7 @@ import type {
   Componente,
   JustificativaEducativa,
   RestricaoAjustavel,
+  AlertaAgregado,
 } from '@hardware-csp/shared-types';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Slider } from '@/components/ui/slider';
@@ -238,6 +240,64 @@ function ResumoPanel({ categorias, estado, catalogoTotal, incompativeisIds }: Re
           {selectionCount === 0 ? '—' : `${consumoTotalW} W`}
         </span>
       </div>
+    </div>
+  );
+}
+
+// ── AlertasAgregadosPanel ────────────────────────────────────────────────────
+
+interface AlertasAgregadosPanelProps {
+  alertas: AlertaAgregado[];
+}
+
+/**
+ * Alertas de capacidade agregada (pós-condição calculada no backend — soma de
+ * demandas contra uma capacidade compartilhada, ex.: TDP de CPU+GPU vs
+ * potência da fonte). Estruturalmente distinto das justificativas binárias
+ * (RF-10): descreve o CONJUNTO selecionado, não um único componente
+ * bloqueado, por isso usa tom âmbar (não vermelho) e não vem de
+ * `valoresBloqueados`. O cálculo é inteiramente do backend; aqui só exibimos
+ * os campos já prontos em `RespostaValidacao.alertasAgregados`.
+ */
+function AlertasAgregadosPanel({ alertas }: AlertasAgregadosPanelProps) {
+  if (alertas.length === 0) return null;
+
+  return (
+    <div className="flex flex-col gap-3">
+      {alertas.map((alerta, idx) => (
+        <div
+          key={idx}
+          className="bg-amber-50 border-[1.5px] border-amber-300 rounded-2xl p-5"
+        >
+          <div className="flex items-start gap-3">
+            <div className="w-9 h-9 rounded-xl bg-amber-100 border border-amber-200 flex items-center justify-center flex-shrink-0">
+              <AlertTriangle size={16} className="text-amber-700" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[13px] font-bold text-amber-800 mb-1">
+                Capacidade energética excedida
+              </p>
+              <p className="text-[12px] text-amber-900 leading-relaxed mb-3">{alerta.mensagem}</p>
+              <div className="flex flex-wrap gap-1.5">
+                {alerta.componentesDemanda.map((c) => (
+                  <span
+                    key={c.id}
+                    className="text-[11px] font-medium px-2 py-0.5 rounded-full border border-amber-200 bg-white text-amber-800"
+                  >
+                    {c.nome}: {c.valor}W
+                  </span>
+                ))}
+                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full border border-amber-300 bg-amber-100 text-amber-900">
+                  Total {alerta.demandaTotal}W → {alerta.demandaComMargem}W com margem
+                </span>
+                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full border border-amber-300 bg-white text-amber-900">
+                  {alerta.componenteCapacidade.nome}: {alerta.capacidadeDisponivel}W disponíveis
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
@@ -467,6 +527,7 @@ export default function WizardPage() {
   }
 
   const consumoTotalW = calcularConsumoTotalW(categorias, estado, catalogoTotal);
+  const alertasAgregados = validacao?.alertasAgregados ?? [];
 
   // For each category, check if the selected component is blocked (selected-invalid state).
   // Used by the sidebar ResumoPanel and the summary screen.
@@ -637,6 +698,12 @@ export default function WizardPage() {
               {consumoTotalW === 0 ? '—' : `${consumoTotalW} W`}
             </span>
           </div>
+
+          {alertasAgregados.length > 0 && (
+            <div className="mb-8">
+              <AlertasAgregadosPanel alertas={alertasAgregados} />
+            </div>
+          )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8">
             {categorias.map((cat) => {
@@ -853,25 +920,28 @@ export default function WizardPage() {
               incompativeisIds={incompativeisIds}
             />
 
-            {/* Placeholder — future build analysis */}
-            <div className="bg-white border-[1.5px] border-dashed border-[#D1D1D6] rounded-2xl p-6 text-center">
-              <div className="w-12 h-12 bg-[#F5F5F7] border border-[#E5E5EA] rounded-2xl flex items-center justify-center mx-auto mb-3">
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#AEAEB2"
-                  strokeWidth="2"
-                >
-                  <path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18" />
-                </svg>
+            {alertasAgregados.length > 0 ? (
+              <AlertasAgregadosPanel alertas={alertasAgregados} />
+            ) : (
+              <div className="bg-white border-[1.5px] border-dashed border-[#D1D1D6] rounded-2xl p-6 text-center">
+                <div className="w-12 h-12 bg-[#F5F5F7] border border-[#E5E5EA] rounded-2xl flex items-center justify-center mx-auto mb-3">
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#AEAEB2"
+                    strokeWidth="2"
+                  >
+                    <path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18" />
+                  </svg>
+                </div>
+                <p className="text-[13px] font-semibold text-[#1D1D1F] mb-1.5">Análise da Build</p>
+                <p className="text-[12px] text-[#AEAEB2] leading-relaxed">
+                  O relatório de compatibilidade detalhado e restrições CSP aparecerão aqui.
+                </p>
               </div>
-              <p className="text-[13px] font-semibold text-[#1D1D1F] mb-1.5">Análise da Build</p>
-              <p className="text-[12px] text-[#AEAEB2] leading-relaxed">
-                O relatório de compatibilidade detalhado e restrições CSP aparecerão aqui.
-              </p>
-            </div>
+            )}
           </aside>
         </div>
       )}

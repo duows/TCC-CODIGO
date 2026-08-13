@@ -32,13 +32,19 @@ export function avaliarRestricao(
   // Sem dados suficientes → não bloqueia (dados faltantes não geram erro)
   if (val1 === undefined || val2 === undefined) return true;
 
-  if (restricao.operador === 'IGUAL') {
-    return val1 === val2;
+  switch (restricao.operador) {
+    case 'IGUAL':
+      return val1 === val2;
+    case 'MAIOR_OU_IGUAL': {
+      // val2 (capacidade) >= val1 (demanda) * parametro
+      const parametro = Number(restricao.parametro ?? '1');
+      return Number(val2) >= Number(val1) * parametro;
+    }
+    default: {
+      const _exaustivo: never = restricao.operador;
+      throw new Error(`Operador de restrição não suportado: ${_exaustivo}`);
+    }
   }
-
-  // MAIOR_OU_IGUAL: val2 (capacidade) >= val1 (demanda) * parametro
-  const parametro = Number(restricao.parametro ?? '1');
-  return Number(val2) >= Number(val1) * parametro;
 }
 
 function getValor(componente: Componente, caracteristicaId: string): string | undefined {

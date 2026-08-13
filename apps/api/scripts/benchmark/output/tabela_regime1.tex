@@ -1,0 +1,21 @@
+\begin{table}[htbp]
+  \centering
+  \caption{Regime irrestrito (domínios cheios): comparação AC-3 versus força bruta. A força bruta é abortada no teto a partir de $d=50$ (coluna FB concl.\ passa a não); o espaço residual do AC-3 permanece igual a $d^5$, pois sem seleção nenhum valor perde suporte.}
+  \label{tab:bench-regime1}
+  \resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{%
+    \begin{tabular}{rrrrrcr}
+      \toprule
+      $d$ & AC-3 checagens & AC-3 tempo (ms) & FB checagens & FB tempo (ms) & FB concl. & Espaço residual \\
+      \midrule
+      10 & \num{118} & \num{0.093} & \num{152000} & \num{5.586} & sim & \num{100000} \\
+      25 & \num{302} & \num{0.039} & \num{1.46e7} & \num{510.548} & sim & \num{9.77e6} \\
+      50 & \num{608} & \num{0.076} & \num{1.50e8} & \num{5183.057} & não & \num{3.13e8} \\
+      75 & \num{915} & \num{0.101} & \num{1.51e8} & \num{5191.575} & não & \num{2.37e9} \\
+      100 & \num{1225} & \num{0.128} & \num{1.50e8} & \num{5443.806} & não & \num{1.00e10} \\
+      250 & \num{3058} & \num{0.288} & \num{1.63e8} & \num{6014.267} & não & \num{9.77e11} \\
+      500 & \num{6125} & \num{0.637} & \num{2.26e8} & \num{10076.577} & não & \num{3.13e13} \\
+      \bottomrule
+    \end{tabular}%
+  }
+  \fonte{Elaborada pelo autor}
+\end{table}

@@ -8,6 +8,8 @@
     "start": "nest start",
     "dev": "ts-node -r tsconfig-paths/register src/main.ts",
     "start:prod": "node dist/main",
+    "benchmark": "ts-node --transpile-only scripts/benchmark/harness.ts",
+    "benchmark:tables": "ts-node --transpile-only scripts/benchmark/tables.ts",
     "lint": "eslint \"{src,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",

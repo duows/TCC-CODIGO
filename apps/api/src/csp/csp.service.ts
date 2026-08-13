@@ -8,6 +8,8 @@ import type {
   EstadoConfiguracao,
   RespostaValidacao,
   DominioVariavel,
+  AlertaAgregado,
+  Componente,
 } from '@hardware-csp/shared-types';
 
 /**
@@ -59,6 +61,12 @@ export class CspService {
     // 2) Carregar domínios iniciais (um por categoria, colapso se já atribuído)
     const variaveis = await this.carregarVariaveis(estado);
 
+    // 2b) Capturar os componentes efetivamente selecionados ANTES do AC-3, que
+    //     muta os domínios in-place e pode remover o próprio valor selecionado
+    //     (ex.: viola uma restrição binária). A verificação agregada (passo 3c)
+    //     precisa da seleção física do usuário, não do domínio pós-poda.
+    const selecionados = this.capturarSelecionados(estado, variaveis);
+
     // 3) Propagar restrições via AC-3
     const resultado = ac3(variaveis, restricoes);
 
@@ -88,6 +96,11 @@ export class CspService {
     }
     const todosRemovedos = [...resultado.removidos, ...complementRemovals];
 
+    // 3c) Verificação agregada de capacidade (pós-condição, fora do grafo
+    //     binário — ver calcularAlertasAgregados). Não influencia `consistente`
+    //     nem `justificativas`; é um sinal próprio e independente.
+    const alertasAgregados = this.calcularAlertasAgregados(restricoes, selecionados);
+
     // 4) Gerar justificativas educativas (RF-10)
     const justificativas = this.explanations.gerarJustificativas(todosRemovedos);
 
@@ -113,8 +126,138 @@ export class CspService {
       consistente: novaConsistente,
       dominios,
       justificativas,
+      alertasAgregados,
       tempoExecucaoMs: Math.round(performance.now() - inicio),
     };
+  }
+
+  // ---------------------------------------------------------------------------
+  // Verificação agregada de capacidade (pós-condição)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Snapshot dos componentes fisicamente selecionados pelo usuário
+   * (categoriaId → Componente), lido do domínio ANTES da propagação AC-3.
+   */
+  private capturarSelecionados(
+    estado: EstadoConfiguracao,
+    variaveis: VariavelCSP[],
+  ): Map<string, Componente> {
+    const selecionados = new Map<string, Componente>();
+    for (const v of variaveis) {
+      const idAtribuido = estado[v.categoriaId];
+      if (!idAtribuido) continue;
+      const componente = v.dominio.get(idAtribuido);
+      if (componente) selecionados.set(v.categoriaId, componente);
+    }
+    return selecionados;
+  }
+
+  /**
+   * Verificação agregada de capacidade, executada como PÓS-CONDIÇÃO sobre a
+   * configuração completa — fora do grafo de restrições binárias do AC-3.
+   *
+   * Motivação: restrições MAIOR_OU_IGUAL são binárias e por componente
+   * (ex.: CPU↔Fonte, GPU↔Fonte), então aprovam configurações cuja SOMA das
+   * demandas excede a capacidade compartilhada, mesmo que cada uma
+   * isoladamente passe (ex.: CPU 170W×1.25=212.5W ≤ 600W e GPU 450W×1.25=
+   * 562.5W ≤ 600W, mas a soma real de 620W excede a fonte). A soma é uma
+   * restrição N-ária e não cabe no grafo binário do AC-3 (RNF-02) — por isso
+   * é avaliada aqui, separadamente, sobre a seleção completa do usuário.
+   *
+   * Totalmente derivada dos dados (RNF-07/08): agrupa as restrições
+   * MAIOR_OU_IGUAL que compartilham a mesma `caracteristica2Id` (lado da
+   * capacidade); os `caracteristica1Id` do grupo são as demandas somadas.
+   * Nenhuma categoria ou característica é conhecida por nome neste código.
+   */
+  private calcularAlertasAgregados(
+    restricoes: RestricaoInterna[],
+    selecionados: Map<string, Componente>,
+  ): AlertaAgregado[] {
+    const gruposPorCapacidade = new Map<string, RestricaoInterna[]>();
+    for (const r of restricoes) {
+      if (r.operador !== 'MAIOR_OU_IGUAL') continue;
+      const grupo = gruposPorCapacidade.get(r.caracteristica2Id);
+      if (grupo) grupo.push(r);
+      else gruposPorCapacidade.set(r.caracteristica2Id, [r]);
+    }
+
+    const alertas: AlertaAgregado[] = [];
+
+    for (const [caracteristicaCapacidadeId, grupo] of gruposPorCapacidade) {
+      const primeiraRestricao = grupo[0];
+      if (!primeiraRestricao) continue;
+
+      // Grupo de tamanho 1 é a própria restrição binária — o AC-3 já a cobre
+      // via `justificativas`. Avaliar aqui duplicaria o mesmo sinal em dois
+      // formatos (justificativa vermelha + alerta agregado âmbar).
+      if (grupo.length < 2) continue;
+
+      const componenteCapacidade = selecionados.get(primeiraRestricao.variavelCapacidade);
+      if (!componenteCapacidade) continue; // categoria de capacidade não escolhida
+
+      const capacidadeValor = valorCaracteristica(componenteCapacidade, caracteristicaCapacidadeId);
+      if (capacidadeValor === undefined) continue;
+
+      const componentesDemanda: AlertaAgregado['componentesDemanda'] = [];
+      let demandaTotal = 0;
+      let configuracaoCompleta = true;
+
+      for (const r of grupo) {
+        const componenteDemanda = selecionados.get(r.variavelDemanda);
+        const valor =
+          componenteDemanda && valorCaracteristica(componenteDemanda, r.caracteristica1Id);
+        if (!componenteDemanda || valor === undefined) {
+          configuracaoCompleta = false;
+          break;
+        }
+        demandaTotal += valor;
+        componentesDemanda.push({
+          id: componenteDemanda.id,
+          categoriaId: componenteDemanda.categoriaId,
+          nome: componenteDemanda.nome,
+          valor,
+        });
+      }
+      // Configuração incompleta (alguma categoria de demanda ou a de
+      // capacidade ainda não escolhida) não produz alerta — nada a somar.
+      if (!configuracaoCompleta) continue;
+
+      const parametrosDoGrupo = new Set(grupo.map((r) => r.parametro ?? '1'));
+      if (parametrosDoGrupo.size > 1) {
+        throw new Error(
+          `Restrições agregadas para a característica de capacidade '${caracteristicaCapacidadeId}' ` +
+            `têm parâmetros de margem divergentes (${[...parametrosDoGrupo].join(', ')}) — ` +
+            'não há uma margem única para aplicar à soma das demandas.',
+        );
+      }
+      const margem = Number([...parametrosDoGrupo][0]);
+
+      const demandaComMargem = demandaTotal * margem;
+      if (demandaComMargem <= capacidadeValor) continue; // dentro da capacidade
+
+      alertas.push({
+        caracteristicaCapacidadeId,
+        componenteCapacidade: {
+          id: componenteCapacidade.id,
+          categoriaId: componenteCapacidade.categoriaId,
+          nome: componenteCapacidade.nome,
+        },
+        componentesDemanda,
+        demandaTotal,
+        demandaComMargem: Math.round(demandaComMargem),
+        capacidadeDisponivel: capacidadeValor,
+        mensagem: montarMensagemAgregada(
+          componentesDemanda,
+          demandaTotal,
+          demandaComMargem,
+          capacidadeValor,
+          componenteCapacidade.nome,
+        ),
+      });
+    }
+
+    return alertas;
   }
 
   // ---------------------------------------------------------------------------
@@ -163,4 +306,25 @@ export class CspService {
 
     return variaveis;
   }
+}
+
+function valorCaracteristica(componente: Componente, caracteristicaId: string): number | undefined {
+  const bruto = componente.caracteristicas.find((c) => c.caracteristicaId === caracteristicaId)?.valor;
+  if (bruto === undefined) return undefined;
+  const numero = Number(bruto);
+  return Number.isFinite(numero) ? numero : undefined;
+}
+
+function montarMensagemAgregada(
+  componentesDemanda: AlertaAgregado['componentesDemanda'],
+  demandaTotal: number,
+  demandaComMargem: number,
+  capacidadeDisponivel: number,
+  nomeComponenteCapacidade: string,
+): string {
+  const nomes = componentesDemanda.map((c) => `${c.nome} (${c.valor}W)`).join(' + ');
+  return (
+    `${nomes} somam ${demandaTotal}W, exigindo ${Math.round(demandaComMargem)}W com margem de ` +
+    `segurança — acima dos ${capacidadeDisponivel}W disponíveis em ${nomeComponenteCapacidade}.`
+  );
 }

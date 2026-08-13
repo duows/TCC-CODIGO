@@ -1,0 +1,21 @@
+\begin{table}[htbp]
+  \centering
+  \caption{Regime seleção parcial (CPU fixada em soquete AM5): a arco-consistência poda as placas de outro soquete e propaga à RAM. O espaço residual do AC-3 cai muito abaixo de $d^5$ (coluna Redução $= d^5/\text{residual}$), evidenciando a poda efetiva. A coluna $d^5$ foi omitida por já constar na Tabela~\ref{tab:bench-regime1}.}
+  \label{tab:bench-regime2}
+  \resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{%
+    \begin{tabular}{rrrrrcrr}
+      \toprule
+      $d$ & AC-3 checagens & AC-3 tempo (ms) & FB checagens & FB tempo (ms) & FB concl. & Residual & Redução \\
+      \midrule
+      10 & \num{71} & \num{0.038} & \num{16000} & \num{0.558} & sim & \num{1500} & $\times$\num{67} \\
+      25 & \num{211} & \num{0.030} & \num{574375} & \num{21.256} & sim & \num{45000} & $\times$\num{217} \\
+      50 & \num{591} & \num{0.055} & \num{9.50e6} & \num{344.182} & sim & \num{812500} & $\times$\num{385} \\
+      75 & \num{1118} & \num{0.082} & \num{4.76e7} & \num{1711.388} & sim & \num{3.95e6} & $\times$\num{600} \\
+      100 & \num{1778} & \num{0.217} & \num{1.50e8} & \num{5433.302} & não & \num{1.25e7} & $\times$\num{800} \\
+      250 & \num{9191} & \num{0.294} & \num{1.63e8} & \num{6148.752} & não & \num{4.92e8} & $\times$\num{1984} \\
+      500 & \num{33878} & \num{1.222} & \num{1.00e8} & \num{2830.519} & não & \num{7.81e9} & $\times$\num{4000} \\
+      \bottomrule
+    \end{tabular}%
+  }
+  \fonte{Elaborada pelo autor}
+\end{table}

@@ -38,6 +38,9 @@ Thumbs.db
 coverage/
 *.lcov
 
+# Benchmark: os artefatos oficiais (CSV consolidado, figuras PNG e tabelas TeX)
+# são VERSIONADOS — viram figura/tabela da monografia, rastreabilidade do dado.
+
 # Prisma
 apps/api/prisma/migrations/dev/
 
@@ -45,3 +48,4 @@ claude.md
 AC3_IMPLEMENTATION_GUIDE.md
 design.md
 RELATORIO_CONFORMIDADE.md
+*.md

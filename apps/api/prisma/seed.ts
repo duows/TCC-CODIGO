@@ -31,15 +31,17 @@ async function main() {
   // 1) MARCAS
   // ---------------------------------------------------------------------------
 
-  const [amd, asus, msi, corsair, kingston] = await Promise.all([
+  const [amd, asus, msi, corsair, kingston, gskill, fsp] = await Promise.all([
     prisma.marca.create({ data: { nome: 'AMD' } }),
     prisma.marca.create({ data: { nome: 'ASUS' } }),
     prisma.marca.create({ data: { nome: 'MSI' } }),
     prisma.marca.create({ data: { nome: 'Corsair' } }),
     prisma.marca.create({ data: { nome: 'Kingston' } }),
+    prisma.marca.create({ data: { nome: 'G.Skill' } }),
+    prisma.marca.create({ data: { nome: 'FSP' } }),
   ]);
 
-  console.log('  Marcas cadastradas: 5');
+  console.log('  Marcas cadastradas: 7');
 
   // ---------------------------------------------------------------------------
   // 2) CATEGORIAS (variáveis X do CSP) — ordem define sequência do wizard
@@ -141,6 +143,60 @@ async function main() {
     { caracteristicaId: carCpuFreq.id, valor: '3800' },
   ]);
 
+  await criarComponente('Ryzen 5 5600X', amd.id, catCpu.id, [
+    { caracteristicaId: carCpuSocket.id, valor: 'AM4' },
+    { caracteristicaId: carCpuTdp.id, valor: '65' },
+    { caracteristicaId: carCpuGeracao.id, valor: 'Zen 3' },
+    { caracteristicaId: carCpuNucleos.id, valor: '6' },
+    { caracteristicaId: carCpuThreads.id, valor: '12' },
+    { caracteristicaId: carCpuFreq.id, valor: '3700' },
+  ]);
+
+  await criarComponente('Ryzen 7 5800X', amd.id, catCpu.id, [
+    { caracteristicaId: carCpuSocket.id, valor: 'AM4' },
+    { caracteristicaId: carCpuTdp.id, valor: '105' },
+    { caracteristicaId: carCpuGeracao.id, valor: 'Zen 3' },
+    { caracteristicaId: carCpuNucleos.id, valor: '8' },
+    { caracteristicaId: carCpuThreads.id, valor: '16' },
+    { caracteristicaId: carCpuFreq.id, valor: '3800' },
+  ]);
+
+  await criarComponente('Ryzen 9 5950X', amd.id, catCpu.id, [
+    { caracteristicaId: carCpuSocket.id, valor: 'AM4' },
+    { caracteristicaId: carCpuTdp.id, valor: '105' },
+    { caracteristicaId: carCpuGeracao.id, valor: 'Zen 3' },
+    { caracteristicaId: carCpuNucleos.id, valor: '16' },
+    { caracteristicaId: carCpuThreads.id, valor: '32' },
+    { caracteristicaId: carCpuFreq.id, valor: '3400' },
+  ]);
+
+  await criarComponente('Ryzen 7 7700X', amd.id, catCpu.id, [
+    { caracteristicaId: carCpuSocket.id, valor: 'AM5' },
+    { caracteristicaId: carCpuTdp.id, valor: '105' },
+    { caracteristicaId: carCpuGeracao.id, valor: 'Zen 4' },
+    { caracteristicaId: carCpuNucleos.id, valor: '8' },
+    { caracteristicaId: carCpuThreads.id, valor: '16' },
+    { caracteristicaId: carCpuFreq.id, valor: '4500' },
+  ]);
+
+  await criarComponente('Ryzen 9 7900X', amd.id, catCpu.id, [
+    { caracteristicaId: carCpuSocket.id, valor: 'AM5' },
+    { caracteristicaId: carCpuTdp.id, valor: '170' },
+    { caracteristicaId: carCpuGeracao.id, valor: 'Zen 4' },
+    { caracteristicaId: carCpuNucleos.id, valor: '12' },
+    { caracteristicaId: carCpuThreads.id, valor: '24' },
+    { caracteristicaId: carCpuFreq.id, valor: '4700' },
+  ]);
+
+  await criarComponente('Ryzen 9 7950X', amd.id, catCpu.id, [
+    { caracteristicaId: carCpuSocket.id, valor: 'AM5' },
+    { caracteristicaId: carCpuTdp.id, valor: '170' },
+    { caracteristicaId: carCpuGeracao.id, valor: 'Zen 4' },
+    { caracteristicaId: carCpuNucleos.id, valor: '16' },
+    { caracteristicaId: carCpuThreads.id, valor: '32' },
+    { caracteristicaId: carCpuFreq.id, valor: '4500' },
+  ]);
+
   // Placas-mãe
   await criarComponente('PRIME B550M-A', asus.id, catPlaca.id, [
     { caracteristicaId: carPlacaSocket.id, valor: 'AM4' },
@@ -156,6 +212,34 @@ async function main() {
     { caracteristicaId: carPlacaSlots.id, valor: '4' },
   ]);
 
+  await criarComponente('TUF GAMING X570-PLUS', asus.id, catPlaca.id, [
+    { caracteristicaId: carPlacaSocket.id, valor: 'AM4' },
+    { caracteristicaId: carPlacaMemoria.id, valor: 'DDR4' },
+    { caracteristicaId: carPlacaChipset.id, valor: 'X570' },
+    { caracteristicaId: carPlacaSlots.id, valor: '4' },
+  ]);
+
+  await criarComponente('MAG B550 TOMAHAWK', msi.id, catPlaca.id, [
+    { caracteristicaId: carPlacaSocket.id, valor: 'AM4' },
+    { caracteristicaId: carPlacaMemoria.id, valor: 'DDR4' },
+    { caracteristicaId: carPlacaChipset.id, valor: 'B550' },
+    { caracteristicaId: carPlacaSlots.id, valor: '4' },
+  ]);
+
+  await criarComponente('ROG STRIX B650E-F', asus.id, catPlaca.id, [
+    { caracteristicaId: carPlacaSocket.id, valor: 'AM5' },
+    { caracteristicaId: carPlacaMemoria.id, valor: 'DDR5' },
+    { caracteristicaId: carPlacaChipset.id, valor: 'B650E' },
+    { caracteristicaId: carPlacaSlots.id, valor: '4' },
+  ]);
+
+  await criarComponente('MAG X670E TOMAHAWK', msi.id, catPlaca.id, [
+    { caracteristicaId: carPlacaSocket.id, valor: 'AM5' },
+    { caracteristicaId: carPlacaMemoria.id, valor: 'DDR5' },
+    { caracteristicaId: carPlacaChipset.id, valor: 'X670E' },
+    { caracteristicaId: carPlacaSlots.id, valor: '4' },
+  ]);
+
   // Memórias RAM
   await criarComponente('Vengeance LPX 16GB', corsair.id, catRam.id, [
     { caracteristicaId: carRamPadrao.id, valor: 'DDR4' },
@@ -163,15 +247,39 @@ async function main() {
     { caracteristicaId: carRamFreq.id, valor: '3200' },
   ]);
 
-  await criarComponente('Fury Beast 16GB', kingston.id, catRam.id, [
+  await criarComponente('Fury Beast 16GB DDR5', kingston.id, catRam.id, [
     { caracteristicaId: carRamPadrao.id, valor: 'DDR5' },
     { caracteristicaId: carRamCapacidade.id, valor: '16' },
     { caracteristicaId: carRamFreq.id, valor: '5600' },
   ]);
 
+  await criarComponente('Vengeance LPX 32GB', corsair.id, catRam.id, [
+    { caracteristicaId: carRamPadrao.id, valor: 'DDR4' },
+    { caracteristicaId: carRamCapacidade.id, valor: '32' },
+    { caracteristicaId: carRamFreq.id, valor: '3600' },
+  ]);
+
+  await criarComponente('Fury Beast 16GB DDR4', kingston.id, catRam.id, [
+    { caracteristicaId: carRamPadrao.id, valor: 'DDR4' },
+    { caracteristicaId: carRamCapacidade.id, valor: '16' },
+    { caracteristicaId: carRamFreq.id, valor: '3200' },
+  ]);
+
+  await criarComponente('Vengeance 32GB DDR5', corsair.id, catRam.id, [
+    { caracteristicaId: carRamPadrao.id, valor: 'DDR5' },
+    { caracteristicaId: carRamCapacidade.id, valor: '32' },
+    { caracteristicaId: carRamFreq.id, valor: '6000' },
+  ]);
+
+  await criarComponente('Trident Z5 32GB', gskill.id, catRam.id, [
+    { caracteristicaId: carRamPadrao.id, valor: 'DDR5' },
+    { caracteristicaId: carRamCapacidade.id, valor: '32' },
+    { caracteristicaId: carRamFreq.id, valor: '6000' },
+  ]);
+
   // GPUs
   await criarComponente('Radeon RX 6600', amd.id, catGpu.id, [
-    { caracteristicaId: carGpuTdp.id, valor: '130' },
+    { caracteristicaId: carGpuTdp.id, valor: '132' },
     { caracteristicaId: carGpuVram.id, valor: '8' },
     { caracteristicaId: carGpuFreq.id, valor: '1626' },
     { caracteristicaId: carGpuInterface.id, valor: 'PCIe 4.0 x8' },
@@ -184,10 +292,44 @@ async function main() {
     { caracteristicaId: carGpuInterface.id, valor: 'PCIe 4.0 x16' },
   ]);
 
+  await criarComponente('Radeon RX 6700 XT', amd.id, catGpu.id, [
+    { caracteristicaId: carGpuTdp.id, valor: '230' },
+    { caracteristicaId: carGpuVram.id, valor: '12' },
+    { caracteristicaId: carGpuFreq.id, valor: '2424' },
+    { caracteristicaId: carGpuInterface.id, valor: 'PCIe 4.0 x16' },
+  ]);
+
+  await criarComponente('Radeon RX 6800 XT', amd.id, catGpu.id, [
+    { caracteristicaId: carGpuTdp.id, valor: '300' },
+    { caracteristicaId: carGpuVram.id, valor: '16' },
+    { caracteristicaId: carGpuFreq.id, valor: '2015' },
+    { caracteristicaId: carGpuInterface.id, valor: 'PCIe 4.0 x16' },
+  ]);
+
+  await criarComponente('Radeon RX 7600', amd.id, catGpu.id, [
+    { caracteristicaId: carGpuTdp.id, valor: '165' },
+    { caracteristicaId: carGpuVram.id, valor: '8' },
+    { caracteristicaId: carGpuFreq.id, valor: '2250' },
+    { caracteristicaId: carGpuInterface.id, valor: 'PCIe 4.0 x8' },
+  ]);
+
+  await criarComponente('Radeon RX 7800 XT', amd.id, catGpu.id, [
+    { caracteristicaId: carGpuTdp.id, valor: '263' },
+    { caracteristicaId: carGpuVram.id, valor: '16' },
+    { caracteristicaId: carGpuFreq.id, valor: '2124' },
+    { caracteristicaId: carGpuInterface.id, valor: 'PCIe 4.0 x16' },
+  ]);
+
   // Fontes
-  await criarComponente('CV250', corsair.id, catFonte.id, [
+  // Nota: "CV250" (250W, 80 PLUS White) do catálogo original não corresponde a
+  // nenhum produto Corsair real (sem registro em corsair.com, na linha CV
+  // histórica — que só desce a CV450 — nem nos bancos 80 PLUS/Cybenetics).
+  // Substituída pela FSP250-60EGA (FSP Group), unidade real de 250W com
+  // certificação 80 PLUS Gold confirmada na página oficial do fabricante,
+  // preservando a potência de 250W da qual os exemplos de bloqueio dependem.
+  await criarComponente('FSP250-60EGA', fsp.id, catFonte.id, [
     { caracteristicaId: carFontePotencia.id, valor: '250' },
-    { caracteristicaId: carFonteCert.id, valor: '80 PLUS White' },
+    { caracteristicaId: carFonteCert.id, valor: '80 PLUS Gold' },
   ]);
 
   await criarComponente('CV550', corsair.id, catFonte.id, [
@@ -200,7 +342,22 @@ async function main() {
     { caracteristicaId: carFonteCert.id, valor: '80 PLUS Gold' },
   ]);
 
-  console.log('  Componentes cadastrados: 11 (2 CPUs, 2 Placas, 2 RAMs, 2 GPUs, 3 Fontes)');
+  await criarComponente('CV450', corsair.id, catFonte.id, [
+    { caracteristicaId: carFontePotencia.id, valor: '450' },
+    { caracteristicaId: carFonteCert.id, valor: '80 PLUS Bronze' },
+  ]);
+
+  await criarComponente('RM750', corsair.id, catFonte.id, [
+    { caracteristicaId: carFontePotencia.id, valor: '750' },
+    { caracteristicaId: carFonteCert.id, valor: '80 PLUS Gold' },
+  ]);
+
+  await criarComponente('HX1000', corsair.id, catFonte.id, [
+    { caracteristicaId: carFontePotencia.id, valor: '1000' },
+    { caracteristicaId: carFonteCert.id, valor: '80 PLUS Platinum' },
+  ]);
+
+  console.log('  Componentes cadastrados: 32 (8 CPUs, 6 Placas, 6 RAMs, 6 GPUs, 6 Fontes)');
 
   // ---------------------------------------------------------------------------
   // 5) RESTRIÇÕES DO CSP (conjunto C) — Figura 1 do TCC
@@ -224,7 +381,7 @@ async function main() {
       caracteristica2Id: carPlacaSocket.id,
       operador: OperadorRestricao.IGUAL,
       templateJustificativa:
-        '{comp2.nome} utiliza soquete {val2}, incompatível com {comp1.nome}, que exige soquete {val1}.',
+        '{comp2.nome} utiliza soquete {val2}, incompatível com {comp1.nome}, que exige soquete {val1}. O soquete é a interface física entre processador e placa-mãe, e cada padrão possui número e disposição de contatos próprios, de modo que um processador não encaixa mecanicamente em um soquete de padrão diferente.',
     },
   });
 
@@ -238,7 +395,7 @@ async function main() {
       caracteristica2Id: carPlacaMemoria.id,
       operador: OperadorRestricao.IGUAL,
       templateJustificativa:
-        '{comp1.nome} utiliza padrão de memória {val1}, incompatível com {comp2.nome} que suporta apenas {val2}.',
+        '{comp1.nome} utiliza padrão de memória {val1}, incompatível com {comp2.nome}, que suporta apenas {val2}. Cada padrão de memória possui posição de chanfro e tensão de operação próprias, de modo que um módulo não se encaixa no slot de outro padrão nem opera eletricamente nele.',
     },
   });
 
@@ -250,7 +407,7 @@ async function main() {
       operador: OperadorRestricao.MAIOR_OU_IGUAL,
       parametro: '1.25',
       templateJustificativa:
-        '{comp2.nome} fornece {val2}W, insuficiente para {comp1.nome}, que exige no mínimo {val1_com_margem}W (consumo {val1}W + margem de segurança).',
+        '{comp2.nome} fornece {val2}W, insuficiente para {comp1.nome}, que exige no mínimo {val1_com_margem}W. O consumo nominal do componente é de {val1}W, ao qual se acrescenta uma margem de segurança que cobre picos transitórios de consumo e a perda de eficiência da fonte ao longo de sua vida útil.',
     },
   });
 
@@ -262,7 +419,7 @@ async function main() {
       operador: OperadorRestricao.MAIOR_OU_IGUAL,
       parametro: '1.25',
       templateJustificativa:
-        '{comp2.nome} fornece {val2}W, insuficiente para {comp1.nome}, que exige no mínimo {val1_com_margem}W (consumo {val1}W + margem de segurança).',
+        '{comp2.nome} fornece {val2}W, insuficiente para {comp1.nome}, que exige no mínimo {val1_com_margem}W. O consumo nominal do componente é de {val1}W, ao qual se acrescenta uma margem de segurança que cobre picos transitórios de consumo e a perda de eficiência da fonte ao longo de sua vida útil.',
     },
   });
 
