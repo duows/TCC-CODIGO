@@ -10,7 +10,7 @@ async function bootstrap() {
   const config = app.get(ConfigService);
   const port = config.get<number>('PORT') ?? config.get<number>('API_PORT') ?? 3001;
   const prefix = config.get<string>('API_PREFIX') ?? 'api';
-  const corsOrigin = config.get<string>('CORS_ORIGIN') ?? 'http://localhost:3000';
+  const corsOrigin = config.get<string>('CORS_ORIGIN');
 
   app.setGlobalPrefix(prefix);
   app.useGlobalPipes(
@@ -20,9 +20,9 @@ async function bootstrap() {
       transform: true,
     }),
   );
-  app.enableCors({ origin: corsOrigin });
+  app.enableCors({ origin: corsOrigin ? corsOrigin.split(',') : true });
 
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
   console.log(`🚀 API rodando em http://localhost:${port}/${prefix}`);
 }
 

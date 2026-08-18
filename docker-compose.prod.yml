@@ -1,0 +1,11 @@
+name: tcc-api
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    env_file: .env
+    mem_limit: 512m
+    ports:
+      - "127.0.0.1:3003:3001"
