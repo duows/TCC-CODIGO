@@ -135,3 +135,105 @@ export interface RestricaoAjustavel {
   id: string;
   parametroPadrao: string;
 }
+
+// ===========================================================================
+// Área administrativa — autenticação
+// ===========================================================================
+
+export interface LoginDto {
+  senha: string;
+}
+
+export interface LoginResponse {
+  accessToken: string;
+}
+
+export interface ErroApi {
+  message: string | string[];
+  statusCode: number;
+  error?: string;
+}
+
+// ===========================================================================
+// Enums compartilhados com o Prisma (valores literais, sem depender do
+// @prisma/client no frontend)
+// ===========================================================================
+
+export type TipoCaracteristica = 'TEXTO' | 'INTEIRO';
+export type OperadorRestricao = 'IGUAL' | 'MAIOR_OU_IGUAL';
+
+// ===========================================================================
+// Entidades completas da base de conhecimento (área administrativa) — as
+// demais interfaces acima (CategoriaInfo, CaracteristicaValor, Componente)
+// são as formas de LEITURA já usadas pelo wizard; estas cobrem o CRUD.
+// ===========================================================================
+
+export interface Marca {
+  id: string;
+  nome: string;
+}
+
+export interface Caracteristica {
+  id: string;
+  categoriaId: string;
+  nome: string;
+  tipo: TipoCaracteristica;
+}
+
+export interface Restricao {
+  id: string;
+  /** Lado da demanda/consumo. */
+  caracteristica1Id: string;
+  /** Lado da capacidade/oferta. */
+  caracteristica2Id: string;
+  operador: OperadorRestricao;
+  parametro: string | null;
+  templateJustificativa: string;
+}
+
+// ===========================================================================
+// DTOs de escrita (área administrativa) — espelham os DTOs do backend
+// ===========================================================================
+
+export interface CriarMarcaDto {
+  nome: string;
+}
+export type AtualizarMarcaDto = CriarMarcaDto;
+
+export interface CriarCategoriaDto {
+  nome: string;
+  ordem: number;
+}
+export type AtualizarCategoriaDto = CriarCategoriaDto;
+
+export interface CriarCaracteristicaDto {
+  categoriaId: string;
+  nome: string;
+  tipo: TipoCaracteristica;
+}
+export interface AtualizarCaracteristicaDto {
+  nome: string;
+  tipo: TipoCaracteristica;
+}
+
+export interface CaracteristicaValorInputDto {
+  caracteristicaId: string;
+  valor: string;
+}
+
+export interface CriarComponenteDto {
+  nome: string;
+  marcaId: string;
+  categoriaId: string;
+  caracteristicas: CaracteristicaValorInputDto[];
+}
+export type AtualizarComponenteDto = CriarComponenteDto;
+
+export interface CriarRestricaoDto {
+  caracteristica1Id: string;
+  caracteristica2Id: string;
+  operador: OperadorRestricao;
+  parametro?: string | null;
+  templateJustificativa: string;
+}
+export type AtualizarRestricaoDto = CriarRestricaoDto;

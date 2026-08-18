@@ -1,5 +1,7 @@
-import { Controller, Get, Param, NotFoundException } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, NotFoundException, Post, Put, UseGuards } from '@nestjs/common';
 import { ComponentsService } from './components.service';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { CreateComponenteDto, UpdateComponenteDto } from './component.dto';
 
 @Controller('components')
 export class ComponentsController {
@@ -24,5 +26,23 @@ export class ComponentsController {
     const componente = await this.service.buscarPorId(id);
     if (!componente) throw new NotFoundException(`Componente ${id} não encontrado`);
     return componente;
+  }
+
+  @Post()
+  @UseGuards(JwtAuthGuard)
+  async criar(@Body() dto: CreateComponenteDto) {
+    return this.service.criar(dto);
+  }
+
+  @Put(':id')
+  @UseGuards(JwtAuthGuard)
+  async atualizar(@Param('id') id: string, @Body() dto: UpdateComponenteDto) {
+    return this.service.atualizar(id, dto);
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard)
+  async deletar(@Param('id') id: string) {
+    await this.service.deletar(id);
   }
 }
