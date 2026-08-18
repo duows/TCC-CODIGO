@@ -7,7 +7,7 @@
 body {
   color: rgb(var(--foreground));
   background: rgb(var(--background));
-  font-family: -apple-system, BlinkMacSystemFont, "Geist", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Inter", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -27,6 +27,7 @@ body {
     --secondary-foreground: oklch(0.147 0 0);
     --muted: oklch(0.971 0 0);                     /* #F5F5F7 */
     --muted-foreground: oklch(0.49 0 0);           /* #6E6E73 */
+    --tertiary: oklch(0.72 0 0);                   /* #AEAEB2 */
     --accent: oklch(0.971 0 0);
     --accent-foreground: oklch(0.147 0 0);
     --destructive: oklch(0.594 0.23 22.3);         /* #FF3B30 */

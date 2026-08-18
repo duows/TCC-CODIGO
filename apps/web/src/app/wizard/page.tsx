@@ -450,11 +450,14 @@ function ComponentCard({ comp, isSelected, justificativas, onSelect, buttonLabel
 
 export default function WizardPage() {
   const [categorias, setCategorias] = useState<CategoriaInfo[]>([]);
+  const [erroCategorias, setErroCategorias] = useState<string | null>(null);
   const [etapa, setEtapa] = useState(0);
   const [estado, setEstado] = useState<EstadoConfiguracao>({});
   const [validacao, setValidacao] = useState<RespostaValidacao | null>(null);
+  const [erroValidacao, setErroValidacao] = useState<string | null>(null);
   const [carregando, setCarregando] = useState(false);
   const [componentes, setComponentes] = useState<Componente[]>([]);
+  const [erroComponentes, setErroComponentes] = useState<string | null>(null);
   const [catalogoTotal, setCatalogoTotal] = useState<Map<string, Componente>>(new Map());
   const [restricoesAjustaveis, setRestricoesAjustaveis] = useState<RestricaoAjustavel[]>([]);
   const [margemFonte, setMargemFonte] = useState<number | null>(null);
@@ -463,11 +466,19 @@ export default function WizardPage() {
   const modoResumo = categorias.length > 0 && etapa >= categorias.length;
   const progresso = categorias.length > 0 ? (etapa / categorias.length) * 100 : 0;
 
-  useEffect(() => {
+  function carregarCategorias() {
+    setErroCategorias(null);
     api
       .listarCategorias()
       .then(setCategorias)
-      .catch((e) => console.error('Erro ao listar categorias:', e));
+      .catch(() =>
+        setErroCategorias('Não foi possível carregar as categorias de hardware. Verifique sua conexão e tente novamente.'),
+      );
+  }
+
+  useEffect(() => {
+    carregarCategorias();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -485,6 +496,7 @@ export default function WizardPage() {
   useEffect(() => {
     let cancelado = false;
     setCarregando(true);
+    setErroValidacao(null);
     const ajustes =
       margemFonte !== null && restricoesAjustaveis.length > 0
         ? Object.fromEntries(
@@ -494,7 +506,7 @@ export default function WizardPage() {
     api
       .validarConfiguracao(estado, ajustes)
       .then((r) => { if (!cancelado) setValidacao(r); })
-      .catch((e) => console.error('Erro na validação:', e))
+      .catch(() => { if (!cancelado) setErroValidacao('Não foi possível validar a configuração agora.'); })
       .finally(() => { if (!cancelado) setCarregando(false); });
     return () => { cancelado = true; };
   }, [estado, margemFonte, restricoesAjustaveis]);
@@ -503,6 +515,7 @@ export default function WizardPage() {
     if (!categoriaAtual) return;
     let cancelado = false;
     setComponentes([]);
+    setErroComponentes(null);
     api
       .listarComponentes(categoriaAtual.id)
       .then((lista) => {
@@ -514,7 +527,7 @@ export default function WizardPage() {
           return next;
         });
       })
-      .catch((e) => console.error('Erro ao listar componentes:', e));
+      .catch(() => { if (!cancelado) setErroComponentes('Não foi possível carregar os componentes desta etapa.'); });
     return () => { cancelado = true; };
   }, [categoriaAtual]);
 
@@ -574,12 +587,31 @@ export default function WizardPage() {
     setCatalogoTotal(new Map());
   }
 
-  // Loading state
+  // Loading / error state for the initial category fetch
   if (categorias.length === 0) {
+    if (erroCategorias) {
+      return (
+        <div className="min-h-screen bg-[#F5F5F7] flex items-center justify-center px-4">
+          <div className="max-w-[360px] text-center">
+            <div className="w-12 h-12 rounded-2xl bg-destructive/10 flex items-center justify-center mx-auto mb-4">
+              <AlertTriangle size={20} className="text-destructive" />
+            </div>
+            <p className="text-[15px] font-semibold text-[#1D1D1F] mb-1.5">Não foi possível carregar o assistente</p>
+            <p className="text-[13px] text-[#6E6E73] mb-5">{erroCategorias}</p>
+            <button
+              onClick={carregarCategorias}
+              className="text-[14px] font-semibold text-white px-6 py-2.5 rounded-xl bg-primary hover:bg-primary/90 active:scale-[0.98] transition-all duration-150"
+            >
+              Tentar novamente
+            </button>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="min-h-screen bg-[#F5F5F7] flex items-center justify-center">
         <div className="flex items-center gap-3 text-[#6E6E73]">
-          <div className="w-5 h-5 border-2 border-[#007AFF] border-t-transparent rounded-full animate-spin" />
+          <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
           <span className="text-[15px] font-medium">Carregando…</span>
         </div>
       </div>
@@ -589,10 +621,7 @@ export default function WizardPage() {
   const btnLabel = getButtonLabel(categoriaAtual?.nome ?? '');
 
   return (
-    <div
-      className="min-h-screen bg-[#F5F5F7]"
-      style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif' }}
-    >
+    <div className="min-h-screen bg-[#F5F5F7]">
       {/* ── STICKY HEADER ─────────────────────────────────────────────────── */}
       <header
         className="sticky top-0 z-50 border-b border-[#E5E5EA]"
@@ -836,11 +865,18 @@ export default function WizardPage() {
               </h2>
               {carregando && (
                 <div className="flex items-center gap-2 text-[#AEAEB2]">
-                  <div className="w-4 h-4 border-2 border-[#007AFF] border-t-transparent rounded-full animate-spin" />
+                  <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                   <span className="text-[12px] font-medium">Validando…</span>
                 </div>
               )}
             </div>
+
+            {(erroComponentes ?? erroValidacao) && (
+              <div className="flex items-start gap-2 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-[13px] font-medium text-destructive mb-6">
+                <AlertTriangle size={16} className="mt-0.5 shrink-0" />
+                <span>{erroComponentes ?? erroValidacao}</span>
+              </div>
+            )}
 
             {/* Component grid */}
             <div key={etapa} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 animate-in fade-in duration-300">

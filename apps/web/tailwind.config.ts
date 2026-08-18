@@ -27,6 +27,8 @@ const config: Config = {
           DEFAULT: 'var(--muted)',
           foreground: 'var(--muted-foreground)',
         },
+        tertiary: 'var(--tertiary)',
+        success: 'var(--success)',
         accent: {
           DEFAULT: 'var(--accent)',
           foreground: 'var(--accent-foreground)',
