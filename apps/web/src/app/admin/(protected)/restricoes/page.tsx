@@ -16,20 +16,26 @@ export default function RestricoesPage() {
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
 
+  async function carregarDados() {
+    try {
+      const [res, car, cat] = await Promise.all([
+        api.listarRestricoes(),
+        api.listarCaracteristicas(),
+        api.listarCategorias(),
+      ]);
+      setRestricoes(res);
+      setCaracteristicas(car);
+      setCategorias(cat);
+    } catch {
+      setErro('Falha ao carregar restrições');
+    } finally {
+      setCarregando(false);
+    }
+  }
+
   useEffect(() => {
-    let cancelado = false;
-    Promise.all([api.listarRestricoes(), api.listarCaracteristicas(), api.listarCategorias()])
-      .then(([res, car, cat]) => {
-        if (cancelado) return;
-        setRestricoes(res);
-        setCaracteristicas(car);
-        setCategorias(cat);
-      })
-      .catch(() => !cancelado && setErro('Falha ao carregar restrições'))
-      .finally(() => !cancelado && setCarregando(false));
-    return () => {
-      cancelado = true;
-    };
+    carregarDados();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function infoCaracteristica(id: string) {
@@ -42,8 +48,13 @@ export default function RestricoesPage() {
     setErro(null);
     try {
       await api.excluirRestricao(id);
-      setRestricoes((prev) => prev.filter((r) => r.id !== id));
+      await carregarDados();
     } catch (e) {
+      if (e instanceof ApiError && e.status === 404) {
+        setErro('Este item já havia sido removido. A lista foi atualizada.');
+        await carregarDados();
+        return;
+      }
       setErro(e instanceof ApiError ? e.message : 'Falha ao excluir restrição');
     }
   }

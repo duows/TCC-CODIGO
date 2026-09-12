@@ -14,24 +14,33 @@ export default function MarcasPage() {
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
 
+  async function carregarMarcas() {
+    try {
+      const r = await api.listarMarcas();
+      setMarcas(r);
+    } catch {
+      setErro('Falha ao carregar marcas');
+    } finally {
+      setCarregando(false);
+    }
+  }
+
   useEffect(() => {
-    let cancelado = false;
-    api
-      .listarMarcas()
-      .then((r) => !cancelado && setMarcas(r))
-      .catch(() => !cancelado && setErro('Falha ao carregar marcas'))
-      .finally(() => !cancelado && setCarregando(false));
-    return () => {
-      cancelado = true;
-    };
+    carregarMarcas();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function excluir(id: string) {
     setErro(null);
     try {
       await api.excluirMarca(id);
-      setMarcas((prev) => prev.filter((m) => m.id !== id));
+      await carregarMarcas();
     } catch (e) {
+      if (e instanceof ApiError && e.status === 404) {
+        setErro('Este item já havia sido removido. A lista foi atualizada.');
+        await carregarMarcas();
+        return;
+      }
       setErro(e instanceof ApiError ? e.message : 'Falha ao excluir marca');
     }
   }

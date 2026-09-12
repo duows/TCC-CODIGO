@@ -15,13 +15,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="pt-BR" className={cn("font-sans", inter.variable)}>
       <body className="min-h-screen flex flex-col">
         {children}
-        <footer className="border-t border-[#E5E5EA] py-8">
+        <footer className="border-t py-8">
           <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-32 text-center space-y-1">
-            <p className="text-xs text-[#AEAEB2] leading-relaxed">
+            <p className="text-xs text-tertiary leading-relaxed">
               TCC — Sistema Especialista Educacional para Validação de Compatibilidade de Hardware
               baseado em Problema de Satisfação de Restrições (CSP).
             </p>
-            <p className="text-xs text-[#AEAEB2]">
+            <p className="text-xs text-tertiary">
               Desenvolvido por Henrique José de Souza — IFSP - Birigui &nbsp;·&nbsp; Orientadora: Profa. Dra. Helen de Freitas Santos
             </p>
           </div>

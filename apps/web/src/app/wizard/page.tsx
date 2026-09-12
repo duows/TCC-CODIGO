@@ -16,6 +16,7 @@ import {
   ChevronRight,
   RotateCcw,
   AlertTriangle,
+  Info,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { api } from '@/lib/api';
@@ -30,6 +31,8 @@ import type {
 } from '@hardware-csp/shared-types';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Slider } from '@/components/ui/slider';
+import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card';
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -95,12 +98,30 @@ interface MargemFonteControlProps {
 
 function MargemFonteControl({ percentual, onChange }: MargemFonteControlProps) {
   return (
-    <div className="flex items-center gap-3 shrink-0" title="Margem de segurança aplicada ao dimensionamento da fonte">
-      <span className="text-[12px] font-medium text-[#6E6E73] whitespace-nowrap">
+    <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+      <span className="hidden text-[12px] font-medium text-muted-foreground whitespace-nowrap sm:inline">
         Margem de segurança da fonte
       </span>
+      <span className="text-[12px] font-medium text-muted-foreground sm:hidden">Margem</span>
+      <TooltipProvider delayDuration={150}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              className="flex h-5 w-5 items-center justify-center rounded-full text-tertiary transition-colors hover:bg-primary/10 hover:text-primary"
+              aria-label="O que é a margem de segurança da fonte?"
+            >
+              <Info size={13} />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent className="max-w-[220px] text-center">
+            Esse valor é ajustável — aumente para exigir mais folga de potência da fonte, ou
+            diminua para ser menos conservador.
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
       <Slider
-        className="w-[110px]"
+        className="w-[90px] sm:w-[110px]"
         min={0}
         max={100}
         step={5}
@@ -108,7 +129,7 @@ function MargemFonteControl({ percentual, onChange }: MargemFonteControlProps) {
         onValueChange={(valores) => onChange(valores[0] ?? percentual)}
         aria-label="Margem de segurança da fonte"
       />
-      <span className="text-[12px] font-bold text-[#007AFF] bg-blue-50 border border-blue-100 px-2 py-1 rounded-full min-w-[42px] text-center">
+      <span className="text-[12px] font-bold text-primary bg-primary/10 border border-primary/20 px-2 py-1 rounded-full min-w-[42px] text-center">
         {percentual}%
       </span>
     </div>
@@ -156,14 +177,14 @@ function ResumoPanel({ categorias, estado, catalogoTotal, incompativeisIds }: Re
   const consumoTotalW = calcularConsumoTotalW(categorias, estado, catalogoTotal);
 
   return (
-    <div className="bg-white rounded-2xl border border-[#E5E5EA] overflow-hidden shadow-sm">
+    <Card className="rounded-2xl ring-0 border border-border py-0 gap-0 overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-[#E5E5EA]">
-        <h3 className="text-[15px] font-bold tracking-tight text-[#1D1D1F]">Resumo da Build</h3>
-        <span className="text-[11px] font-semibold text-[#6E6E73] bg-[#F5F5F7] border border-[#E5E5EA] px-2.5 py-1 rounded-full">
+      <CardHeader className="flex-row items-center justify-between px-5 py-4 border-b [.border-b]:pb-4">
+        <h3 className="text-[15px] font-bold tracking-tight text-foreground">Resumo da Build</h3>
+        <span className="text-[11px] font-semibold text-muted-foreground bg-muted border border-border px-2.5 py-1 rounded-full">
           {selectionCount} de {categorias.length}
         </span>
-      </div>
+      </CardHeader>
 
       {/* Items */}
       <div>
@@ -179,32 +200,32 @@ function ResumoPanel({ categorias, estado, catalogoTotal, incompativeisIds }: Re
               key={cat.id}
               className={cn(
                 'flex items-center gap-3 px-5 py-3 transition-colors',
-                i > 0 && 'border-t border-[#F2F2F7]',
+                i > 0 && 'border-t border-border/60',
               )}
             >
               <div
                 className={cn(
                   'w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 border',
                   isIncompat
-                    ? 'bg-red-50 border-red-100'
+                    ? 'bg-destructive/10 border-destructive/20'
                     : hasComp
-                      ? 'bg-blue-50 border-blue-100'
-                      : 'bg-[#F5F5F7] border-[#E5E5EA]',
+                      ? 'bg-primary/10 border-primary/20'
+                      : 'bg-muted border-border',
                 )}
               >
                 <Icon
                   size={15}
-                  className={isIncompat ? 'text-[#FF3B30]' : hasComp ? 'text-[#007AFF]' : 'text-[#AEAEB2]'}
+                  className={isIncompat ? 'text-destructive' : hasComp ? 'text-primary' : 'text-tertiary'}
                 />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.06em] text-[#AEAEB2]">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.06em] text-tertiary">
                   {cat.nome}
                 </p>
                 <p
                   className={cn(
                     'text-[13px] font-medium truncate mt-0.5',
-                    isIncompat ? 'text-[#FF3B30]' : hasComp ? 'text-[#1D1D1F]' : 'text-[#C7C7CC]',
+                    isIncompat ? 'text-destructive' : hasComp ? 'text-foreground' : 'text-muted-foreground/50',
                   )}
                 >
                   {comp?.nome ?? 'Não selecionado'}
@@ -214,10 +235,10 @@ function ResumoPanel({ categorias, estado, catalogoTotal, incompativeisIds }: Re
                 className={cn(
                   'w-[22px] h-[22px] rounded-full flex items-center justify-center flex-shrink-0 text-[11px] font-bold',
                   isIncompat
-                    ? 'bg-red-100 text-[#FF3B30]'
+                    ? 'bg-destructive/15 text-destructive'
                     : hasComp
-                      ? 'bg-green-100 text-[#34C759]'
-                      : 'bg-[#F5F5F7] text-[#D1D1D6]',
+                      ? 'bg-success/15 text-success'
+                      : 'bg-muted text-muted-foreground/40',
                 )}
               >
                 {isIncompat ? (
@@ -234,13 +255,13 @@ function ResumoPanel({ categorias, estado, catalogoTotal, incompativeisIds }: Re
       </div>
 
       {/* Footer */}
-      <div className="flex items-center justify-between px-5 py-4 border-t border-[#E5E5EA]">
-        <span className="text-[13px] font-medium text-[#6E6E73]">Consumo estimado</span>
-        <span className="text-[20px] font-bold tracking-tight text-[#1D1D1F]">
+      <CardFooter className="justify-between px-5 py-4 border-t rounded-b-2xl">
+        <span className="text-[13px] font-medium text-muted-foreground">Consumo estimado</span>
+        <span className="text-[20px] font-bold tracking-tight text-foreground">
           {selectionCount === 0 ? '—' : `${consumoTotalW} W`}
         </span>
-      </div>
-    </div>
+      </CardFooter>
+    </Card>
   );
 }
 
@@ -265,38 +286,40 @@ function AlertasAgregadosPanel({ alertas }: AlertasAgregadosPanelProps) {
   return (
     <div className="flex flex-col gap-3">
       {alertas.map((alerta, idx) => (
-        <div
+        <Card
           key={idx}
-          className="bg-amber-50 border-[1.5px] border-amber-300 rounded-2xl p-5"
+          className="rounded-2xl ring-0 border-[1.5px] border-amber-300 bg-amber-50 py-0"
         >
-          <div className="flex items-start gap-3">
-            <div className="w-9 h-9 rounded-xl bg-amber-100 border border-amber-200 flex items-center justify-center flex-shrink-0">
-              <AlertTriangle size={16} className="text-amber-700" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[13px] font-bold text-amber-800 mb-1">
-                Capacidade energética excedida
-              </p>
-              <p className="text-[12px] text-amber-900 leading-relaxed mb-3">{alerta.mensagem}</p>
-              <div className="flex flex-wrap gap-1.5">
-                {alerta.componentesDemanda.map((c) => (
-                  <span
-                    key={c.id}
-                    className="text-[11px] font-medium px-2 py-0.5 rounded-full border border-amber-200 bg-white text-amber-800"
-                  >
-                    {c.nome}: {c.valor}W
+          <CardContent className="p-5">
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-xl bg-amber-100 border border-amber-200 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle size={16} className="text-amber-700" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[13px] font-bold text-amber-800 mb-1">
+                  Capacidade energética excedida
+                </p>
+                <p className="text-[12px] text-amber-900 leading-relaxed mb-3">{alerta.mensagem}</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {alerta.componentesDemanda.map((c) => (
+                    <span
+                      key={c.id}
+                      className="text-[11px] font-medium px-2 py-0.5 rounded-full border border-amber-200 bg-white text-amber-800"
+                    >
+                      {c.nome}: {c.valor}W
+                    </span>
+                  ))}
+                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full border border-amber-300 bg-amber-100 text-amber-900">
+                    Total {alerta.demandaTotal}W → {alerta.demandaComMargem}W com margem
                   </span>
-                ))}
-                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full border border-amber-300 bg-amber-100 text-amber-900">
-                  Total {alerta.demandaTotal}W → {alerta.demandaComMargem}W com margem
-                </span>
-                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full border border-amber-300 bg-white text-amber-900">
-                  {alerta.componenteCapacidade.nome}: {alerta.capacidadeDisponivel}W disponíveis
-                </span>
+                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full border border-amber-300 bg-white text-amber-900">
+                    {alerta.componenteCapacidade.nome}: {alerta.capacidadeDisponivel}W disponíveis
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       ))}
     </div>
   );
@@ -328,7 +351,7 @@ function ComponentCard({ comp, isSelected, justificativas, onSelect, buttonLabel
     : 'available';
 
   return (
-    <div
+    <Card
       role="button"
       tabIndex={0}
       onClick={() => onSelect(comp.id)}
@@ -338,111 +361,107 @@ function ComponentCard({ comp, isSelected, justificativas, onSelect, buttonLabel
           onSelect(comp.id);
         }
       }}
-      className="focus:outline-none"
+      className={cn(
+        'relative rounded-2xl ring-0 border-[1.5px] flex flex-col py-0 gap-0 transition-all duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+        state === 'selected-invalid'
+          ? 'border-destructive shadow-md hover:shadow-lg'
+          : state === 'selected-valid'
+            ? 'border-primary shadow-md hover:shadow-lg'
+            : state === 'blocked'
+              ? 'border-destructive/20 hover:border-primary hover:shadow-md'
+              : 'border-border hover:border-primary hover:shadow-md',
+      )}
     >
-      <div
-        className={cn(
-          'relative bg-white rounded-2xl border-[1.5px] flex flex-col transition-all duration-200 overflow-hidden cursor-pointer',
-          state === 'selected-invalid'
-            ? 'border-[#FF3B30] shadow-[0_0_0_3px_rgba(255,59,48,0.12),0_4px_16px_rgba(0,0,0,0.08)]'
-            : state === 'selected-valid'
-              ? 'border-[#007AFF] shadow-[0_0_0_3px_rgba(0,122,255,0.12),0_4px_16px_rgba(0,0,0,0.08)]'
-              : state === 'blocked'
-                ? 'border-red-100 hover:border-[#007AFF] hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)]'
-                : 'border-[#E5E5EA] hover:border-[#007AFF] hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)]',
-        )}
-      >
-        {state === 'selected-valid' && (
-          <div className="absolute inset-x-0 top-0 h-[3px] bg-[#007AFF]" />
-        )}
-        {state === 'selected-invalid' && (
-          <div className="absolute inset-x-0 top-0 h-[3px] bg-[#FF3B30]" />
-        )}
+      {state === 'selected-valid' && (
+        <div className="absolute inset-x-0 top-0 h-[3px] bg-primary" />
+      )}
+      {state === 'selected-invalid' && (
+        <div className="absolute inset-x-0 top-0 h-[3px] bg-destructive" />
+      )}
 
-        <div className="p-5 flex flex-col gap-3 flex-1">
-          <div className="flex items-start justify-between gap-2 pt-1">
-            <h4 className="text-[14px] font-semibold leading-snug text-[#1D1D1F]">{comp.nome}</h4>
-            <span
-              className="text-[10px] font-bold px-2 py-1 rounded-full whitespace-nowrap flex-shrink-0 leading-none"
-              style={{ background: brand.bg, color: brand.text }}
-            >
-              {comp.marcaNome}
-            </span>
-          </div>
-
-          {comp.caracteristicas.length > 0 && (
-            <div className="flex flex-col gap-[7px]">
-              {comp.caracteristicas.slice(0, 4).map((car) => (
-                <div key={car.caracteristicaId} className="flex items-center justify-between gap-3">
-                  <span className="text-[11px] text-[#AEAEB2] font-medium">{car.nome}</span>
-                  <span className="text-[11px] text-[#6E6E73] font-semibold text-right">{car.valor}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="px-5 pb-5 pt-3 border-t border-[#F2F2F7] flex items-center justify-between gap-2">
-          {/* Primary action badge */}
-          <div
-            className={cn(
-              'flex items-center gap-1.5 text-[12px] font-semibold px-3.5 py-1.5 rounded-full border',
-              state === 'selected-invalid'
-                ? 'bg-red-50 border-[#FFCCC9] text-[#FF3B30]'
-                : state === 'selected-valid'
-                  ? 'bg-[#34C759] border-[#34C759] text-white'
-                  : 'bg-[#F5F5F7] border-[#E5E5EA] text-[#6E6E73] hover:border-[#007AFF] hover:text-[#007AFF] hover:bg-blue-50 transition-all duration-150',
-            )}
+      <CardContent className="p-5 flex flex-col gap-3 flex-1">
+        <div className="flex items-start justify-between gap-2 pt-1">
+          <h4 className="text-[14px] font-semibold leading-snug text-foreground">{comp.nome}</h4>
+          <span
+            className="text-[10px] font-bold px-2 py-1 rounded-full whitespace-nowrap flex-shrink-0 leading-none"
+            style={{ background: brand.bg, color: brand.text }}
           >
-            {state === 'selected-invalid' && <X size={11} strokeWidth={2.5} />}
-            {state === 'selected-valid' && <Check size={11} strokeWidth={2.5} />}
-            {state === 'selected-invalid'
-              ? 'Incompatível'
-              : state === 'selected-valid'
-                ? 'Selecionado'
-                : buttonLabel}
-          </div>
-
-          {/* Explanation popover — visible for any blocked state (selected or not) */}
-          {isBlocked && (
-            <Popover>
-              <PopoverTrigger asChild>
-                <button
-                  type="button"
-                  onClick={(e) => e.stopPropagation()}
-                  className="w-7 h-7 flex items-center justify-center rounded-full bg-red-50 border border-[#FFCCC9] text-[#FF3B30] hover:bg-red-100 transition-colors flex-shrink-0"
-                  title="Ver motivo da incompatibilidade"
-                >
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <circle cx="12" cy="12" r="10" />
-                    <path d="M12 8v4M12 16h.01" />
-                  </svg>
-                </button>
-              </PopoverTrigger>
-              <PopoverContent
-                side="top"
-                align="center"
-                className="max-w-[300px] p-3 bg-white border border-[#E5E5EA] rounded-2xl shadow-xl"
-              >
-                <div className="flex flex-col gap-2">
-                  {justificativas!.map((j, idx) => (
-                    <div key={idx} className="flex items-start gap-2.5">
-                      <div className="w-7 h-7 rounded-lg bg-red-50 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <Lock size={13} className="text-[#FF3B30]" />
-                      </div>
-                      <div>
-                        <p className="text-[12px] font-bold text-[#FF3B30] mb-1">Restrição violada</p>
-                        <p className="text-[12px] text-[#6E6E73] leading-relaxed">{j.mensagem}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </PopoverContent>
-            </Popover>
-          )}
+            {comp.marcaNome}
+          </span>
         </div>
-      </div>
-    </div>
+
+        {comp.caracteristicas.length > 0 && (
+          <div className="flex flex-col gap-[7px]">
+            {comp.caracteristicas.slice(0, 4).map((car) => (
+              <div key={car.caracteristicaId} className="flex items-center justify-between gap-3">
+                <span className="text-[11px] text-tertiary font-medium">{car.nome}</span>
+                <span className="text-[11px] text-muted-foreground font-semibold text-right">{car.valor}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+
+      <CardFooter className="px-5 pb-5 pt-3 border-t rounded-b-2xl justify-between gap-2">
+        {/* Primary action badge */}
+        <div
+          className={cn(
+            'flex items-center gap-1.5 text-[12px] font-semibold px-3.5 py-1.5 rounded-full border',
+            state === 'selected-invalid'
+              ? 'bg-destructive/10 border-destructive/30 text-destructive'
+              : state === 'selected-valid'
+                ? 'bg-success border-success text-white'
+                : 'bg-muted border-border text-muted-foreground hover:border-primary hover:text-primary hover:bg-primary/10 transition-all duration-150',
+          )}
+        >
+          {state === 'selected-invalid' && <X size={11} strokeWidth={2.5} />}
+          {state === 'selected-valid' && <Check size={11} strokeWidth={2.5} />}
+          {state === 'selected-invalid'
+            ? 'Incompatível'
+            : state === 'selected-valid'
+              ? 'Selecionado'
+              : buttonLabel}
+        </div>
+
+        {/* Explanation popover — visible for any blocked state (selected or not) */}
+        {isBlocked && (
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                onClick={(e) => e.stopPropagation()}
+                className="w-7 h-7 flex items-center justify-center rounded-full bg-destructive/10 border border-destructive/30 text-destructive hover:bg-destructive/20 transition-colors flex-shrink-0"
+                title="Ver motivo da incompatibilidade"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M12 8v4M12 16h.01" />
+                </svg>
+              </button>
+            </PopoverTrigger>
+            <PopoverContent
+              side="top"
+              align="center"
+              className="max-w-[300px] p-3 bg-card border border-border rounded-2xl shadow-xl"
+            >
+              <div className="flex flex-col gap-2">
+                {justificativas!.map((j, idx) => (
+                  <div key={idx} className="flex items-start gap-2.5">
+                    <div className="w-7 h-7 rounded-lg bg-destructive/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Lock size={13} className="text-destructive" />
+                    </div>
+                    <div>
+                      <p className="text-[12px] font-bold text-destructive mb-1">Restrição violada</p>
+                      <p className="text-[12px] text-muted-foreground leading-relaxed">{j.mensagem}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
+        )}
+      </CardFooter>
+    </Card>
   );
 }
 
@@ -591,13 +610,13 @@ export default function WizardPage() {
   if (categorias.length === 0) {
     if (erroCategorias) {
       return (
-        <div className="min-h-screen bg-[#F5F5F7] flex items-center justify-center px-4">
+        <div className="min-h-screen bg-muted flex items-center justify-center px-4">
           <div className="max-w-[360px] text-center">
             <div className="w-12 h-12 rounded-2xl bg-destructive/10 flex items-center justify-center mx-auto mb-4">
               <AlertTriangle size={20} className="text-destructive" />
             </div>
-            <p className="text-[15px] font-semibold text-[#1D1D1F] mb-1.5">Não foi possível carregar o assistente</p>
-            <p className="text-[13px] text-[#6E6E73] mb-5">{erroCategorias}</p>
+            <p className="text-[15px] font-semibold text-foreground mb-1.5">Não foi possível carregar o assistente</p>
+            <p className="text-[13px] text-muted-foreground mb-5">{erroCategorias}</p>
             <button
               onClick={carregarCategorias}
               className="text-[14px] font-semibold text-white px-6 py-2.5 rounded-xl bg-primary hover:bg-primary/90 active:scale-[0.98] transition-all duration-150"
@@ -609,8 +628,8 @@ export default function WizardPage() {
       );
     }
     return (
-      <div className="min-h-screen bg-[#F5F5F7] flex items-center justify-center">
-        <div className="flex items-center gap-3 text-[#6E6E73]">
+      <div className="min-h-screen bg-muted flex items-center justify-center">
+        <div className="flex items-center gap-3 text-muted-foreground">
           <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
           <span className="text-[15px] font-medium">Carregando…</span>
         </div>
@@ -621,10 +640,10 @@ export default function WizardPage() {
   const btnLabel = getButtonLabel(categoriaAtual?.nome ?? '');
 
   return (
-    <div className="min-h-screen bg-[#F5F5F7]">
+    <div className="min-h-screen bg-muted">
       {/* ── STICKY HEADER ─────────────────────────────────────────────────── */}
       <header
-        className="sticky top-0 z-50 border-b border-[#E5E5EA]"
+        className="sticky top-0 z-50 border-b"
         style={{
           background: 'rgba(255,255,255,0.85)',
           backdropFilter: 'blur(20px)',
@@ -635,10 +654,10 @@ export default function WizardPage() {
           {/* Title row */}
           <div className="flex items-start justify-between mb-4 gap-2 flex-wrap">
             <div>
-              <h1 className="text-[22px] font-bold tracking-tight text-[#1D1D1F]">
+              <h1 className="text-[22px] font-bold tracking-tight text-foreground">
                 Configuração de Hardware
               </h1>
-              <p className="text-[13px] text-[#6E6E73] mt-0.5">
+              <p className="text-[13px] text-muted-foreground mt-0.5">
                 Monte sua build — cada etapa valida compatibilidade em tempo real
               </p>
             </div>
@@ -646,16 +665,16 @@ export default function WizardPage() {
               {restricoesAjustaveis.length > 0 && margemFonte !== null && (
                 <MargemFonteControl percentual={margemFonte} onChange={setMargemFonte} />
               )}
-              <span className="text-[12px] font-medium text-[#AEAEB2] mt-1 whitespace-nowrap shrink-0">
+              <span className="text-[12px] font-medium text-tertiary mt-1 whitespace-nowrap shrink-0">
                 {modoResumo ? 'Resumo final' : `Etapa ${etapa + 1} de ${categorias.length}`}
               </span>
             </div>
           </div>
 
           {/* Progress bar */}
-          <div className="h-[3px] bg-[#E5E5EA] rounded-full mb-4">
+          <div className="h-[3px] bg-border rounded-full mb-4">
             <div
-              className="h-full bg-[#007AFF] rounded-full transition-all duration-500 ease-out"
+              className="h-full bg-primary rounded-full transition-all duration-500 ease-out"
               style={{ width: `${modoResumo ? 100 : progresso}%` }}
             />
           </div>
@@ -675,20 +694,20 @@ export default function WizardPage() {
                   className={cn(
                     'flex items-center gap-2 px-4 py-2.5 text-[13px] font-medium border-b-2 -mb-px whitespace-nowrap transition-all duration-200 relative top-px',
                     isActive
-                      ? 'text-[#007AFF] border-[#007AFF] font-semibold'
+                      ? 'text-primary border-primary font-semibold'
                       : isCompleted
-                        ? 'text-[#34C759] border-transparent hover:text-[#1D1D1F] cursor-pointer'
-                        : 'text-[#AEAEB2] border-transparent cursor-default',
+                        ? 'text-success border-transparent hover:text-foreground cursor-pointer'
+                        : 'text-tertiary border-transparent cursor-default',
                   )}
                 >
                   <span
                     className={cn(
                       'w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold transition-all',
                       isActive
-                        ? 'bg-[#007AFF] text-white'
+                        ? 'bg-primary text-white'
                         : isCompleted
-                          ? 'bg-[#34C759] text-white'
-                          : 'bg-[#E5E5EA] text-[#AEAEB2]',
+                          ? 'bg-success text-white'
+                          : 'bg-border text-tertiary',
                     )}
                   >
                     {isCompleted && !isActive ? <Check size={10} strokeWidth={3} /> : i + 1}
@@ -706,27 +725,27 @@ export default function WizardPage() {
         /* Summary screen */
         <div className="px-4 sm:px-6 lg:px-32 py-8 max-w-[1440px] mx-auto">
           <div className="flex items-center gap-3 mb-8">
-            <h2 className="text-[28px] font-bold tracking-tight text-[#1D1D1F]">
+            <h2 className="text-[28px] font-bold tracking-tight text-foreground">
               Resumo da Configuração
             </h2>
             {validacao?.consistente ? (
-              <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#34C759] bg-green-50 border border-green-200 px-3 py-1 rounded-full">
+              <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-success bg-success/10 border border-success/20 px-3 py-1 rounded-full">
                 <Check size={12} strokeWidth={2.5} />
                 Configuração compatível
               </span>
             ) : (
-              <span className="text-[12px] font-semibold text-[#FF3B30] bg-red-50 border border-red-200 px-3 py-1 rounded-full">
+              <span className="text-[12px] font-semibold text-destructive bg-destructive/10 border border-destructive/20 px-3 py-1 rounded-full">
                 Inconsistências detectadas
               </span>
             )}
           </div>
 
-          <div className="bg-white rounded-2xl border border-[#E5E5EA] shadow-sm flex items-center justify-between px-5 py-4 mb-8">
-            <span className="text-[13px] font-medium text-[#6E6E73]">Consumo estimado</span>
-            <span className="text-[20px] font-bold tracking-tight text-[#1D1D1F]">
+          <Card className="rounded-2xl ring-0 border border-border flex-row items-center justify-between px-5 py-4 mb-8">
+            <span className="text-[13px] font-medium text-muted-foreground">Consumo estimado</span>
+            <span className="text-[20px] font-bold tracking-tight text-foreground">
               {consumoTotalW === 0 ? '—' : `${consumoTotalW} W`}
             </span>
-          </div>
+          </Card>
 
           {alertasAgregados.length > 0 && (
             <div className="mb-8">
@@ -742,37 +761,38 @@ export default function WizardPage() {
               const isIncompat = incompativeisIds.has(cat.id);
               const justificativasResumo = incompativeisJustificativas.get(cat.id) ?? [];
               return (
-                <div
+                <Card
                   key={cat.id}
                   className={cn(
-                    'bg-white rounded-2xl border p-5 shadow-sm',
-                    isIncompat ? 'border-red-200' : 'border-[#E5E5EA]',
+                    'rounded-2xl ring-0 border py-0',
+                    isIncompat ? 'border-destructive/30' : 'border-border',
                   )}
                 >
+                  <CardContent className="p-5">
                   <div className="flex items-start gap-3 mb-3">
                     <div
                       className={cn(
                         'w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 border',
                         isIncompat
-                          ? 'bg-red-50 border-red-100'
+                          ? 'bg-destructive/10 border-destructive/20'
                           : componente
-                            ? 'bg-blue-50 border-blue-100'
-                            : 'bg-[#F5F5F7] border-[#E5E5EA]',
+                            ? 'bg-primary/10 border-primary/20'
+                            : 'bg-muted border-border',
                       )}
                     >
                       <Icon
                         size={18}
-                        className={isIncompat ? 'text-[#FF3B30]' : componente ? 'text-[#007AFF]' : 'text-[#AEAEB2]'}
+                        className={isIncompat ? 'text-destructive' : componente ? 'text-primary' : 'text-tertiary'}
                       />
                     </div>
                     <div className="flex-1">
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.06em] text-[#AEAEB2]">
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.06em] text-tertiary">
                         {cat.nome}
                       </p>
                       <p
                         className={cn(
                           'text-[15px] font-semibold mt-0.5',
-                          isIncompat ? 'text-[#FF3B30]' : componente ? 'text-[#1D1D1F]' : 'text-[#C7C7CC]',
+                          isIncompat ? 'text-destructive' : componente ? 'text-foreground' : 'text-muted-foreground/50',
                         )}
                       >
                         {componente?.nome ?? '—'}
@@ -782,7 +802,7 @@ export default function WizardPage() {
                       <div
                         className={cn(
                           'w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5',
-                          isIncompat ? 'bg-red-100 text-[#FF3B30]' : 'bg-green-100 text-[#34C759]',
+                          isIncompat ? 'bg-destructive/15 text-destructive' : 'bg-success/15 text-success',
                         )}
                       >
                         {isIncompat ? (
@@ -798,9 +818,9 @@ export default function WizardPage() {
                   {isIncompat && justificativasResumo.length > 0 && (
                     <div className="flex flex-col gap-2 mb-3">
                       {justificativasResumo.map((j, idx) => (
-                        <div key={idx} className="flex items-start gap-2 bg-red-50 border border-red-100 rounded-xl p-3">
-                          <Lock size={12} className="text-[#FF3B30] mt-0.5 flex-shrink-0" />
-                          <p className="text-[12px] text-[#C41A1A] leading-relaxed">
+                        <div key={idx} className="flex items-start gap-2 bg-destructive/10 border border-destructive/20 rounded-xl p-3">
+                          <Lock size={12} className="text-destructive mt-0.5 flex-shrink-0" />
+                          <p className="text-[12px] text-destructive leading-relaxed">
                             {j.mensagem}
                           </p>
                         </div>
@@ -809,15 +829,15 @@ export default function WizardPage() {
                   )}
 
                   {componente && componente.caracteristicas.length > 0 && (
-                    <div className="border-t border-[#F2F2F7] pt-3 flex flex-wrap gap-1.5">
+                    <div className="border-t border-border/60 pt-3 flex flex-wrap gap-1.5">
                       {componente.caracteristicas.slice(0, 4).map((car) => (
                         <span
                           key={car.caracteristicaId}
                           className={cn(
                             'text-[11px] font-medium px-2 py-0.5 rounded-full border',
                             isIncompat
-                              ? 'text-[#C41A1A] bg-red-50 border-red-100'
-                              : 'text-[#6E6E73] bg-[#F5F5F7] border-[#E5E5EA]',
+                              ? 'text-destructive bg-destructive/10 border-destructive/20'
+                              : 'text-muted-foreground bg-muted border-border',
                           )}
                         >
                           {car.nome}: {car.valor}
@@ -825,27 +845,28 @@ export default function WizardPage() {
                       ))}
                     </div>
                   )}
-                </div>
+                  </CardContent>
+                </Card>
               );
             })}
           </div>
 
           {validacao && (
-            <p className="mt-5 text-[12px] text-[#AEAEB2]">
+            <p className="mt-5 text-[12px] text-tertiary">
               Validado em {validacao.tempoExecucaoMs} ms via AC-3
             </p>
           )}
 
-          <div className="flex items-center justify-between pt-8 mt-8 border-t border-[#E5E5EA]">
+          <div className="flex items-center justify-between pt-8 mt-8 border-t">
             <button
               onClick={voltar}
-              className="text-[15px] font-semibold border-[1.5px] border-[#E5E5EA] rounded-xl px-6 py-2.5 text-[#6E6E73] hover:border-[#AEAEB2] hover:text-[#1D1D1F] hover:bg-[#F5F5F7] active:scale-[0.98] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#007AFF] focus-visible:ring-offset-2"
+              className="text-[15px] font-semibold border-[1.5px] border-border rounded-xl px-6 py-2.5 text-muted-foreground hover:border-tertiary hover:text-foreground hover:bg-muted active:scale-[0.98] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             >
               VOLTAR
             </button>
             <button
               onClick={reiniciar}
-              className="flex items-center gap-2 text-[15px] font-semibold text-[#FF3B30] hover:bg-red-50 px-5 py-2.5 rounded-xl active:scale-[0.98] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF3B30] focus-visible:ring-offset-2"
+              className="flex items-center gap-2 text-[15px] font-semibold text-destructive hover:bg-destructive/10 px-5 py-2.5 rounded-xl active:scale-[0.98] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive focus-visible:ring-offset-2"
             >
               <RotateCcw size={14} />
               REINICIAR
@@ -860,11 +881,11 @@ export default function WizardPage() {
           {/* ── Main column ─────────────────────────────────────────────── */}
           <main>
             <div className="flex items-baseline justify-between mb-6">
-              <h2 className="text-[28px] font-bold tracking-tight text-[#1D1D1F]">
+              <h2 className="text-[28px] font-bold tracking-tight text-foreground">
                 {categoriaAtual?.nome}
               </h2>
               {carregando && (
-                <div className="flex items-center gap-2 text-[#AEAEB2]">
+                <div className="flex items-center gap-2 text-tertiary">
                   <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                   <span className="text-[12px] font-medium">Validando…</span>
                 </div>
@@ -884,7 +905,7 @@ export default function WizardPage() {
                 ? [1, 2, 3, 4, 5, 6].map((n) => (
                     <div
                       key={n}
-                      className="h-[230px] rounded-2xl bg-[#E5E5EA] animate-pulse"
+                      className="h-[230px] rounded-2xl bg-border animate-pulse"
                     />
                   ))
                 : componentes.map((comp) => {
@@ -905,16 +926,16 @@ export default function WizardPage() {
             </div>
 
             {/* Footer nav */}
-            <div className="flex items-center justify-between pt-8 mt-8 border-t border-[#E5E5EA]">
+            <div className="flex items-center justify-between pt-8 mt-8 border-t">
               <button
                 onClick={voltar}
                 className={cn(
-                  'text-[15px] font-semibold border-[1.5px] border-[#E5E5EA] rounded-xl px-6 py-2.5',
+                  'text-[15px] font-semibold border-[1.5px] border-border rounded-xl px-6 py-2.5',
                   'transition-all duration-150',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#007AFF] focus-visible:ring-offset-2',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
                   etapa === 0
                     ? 'invisible'
-                    : 'text-[#6E6E73] hover:border-[#AEAEB2] hover:text-[#1D1D1F] hover:bg-[#F5F5F7] active:scale-[0.98]',
+                    : 'text-muted-foreground hover:border-tertiary hover:text-foreground hover:bg-muted active:scale-[0.98]',
                 )}
               >
                 VOLTAR
@@ -922,7 +943,7 @@ export default function WizardPage() {
 
               <button
                 onClick={reiniciar}
-                className="flex items-center gap-2 text-[15px] font-semibold text-[#FF3B30] hover:bg-red-50 px-5 py-2.5 rounded-xl active:scale-[0.98] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF3B30] focus-visible:ring-offset-2"
+                className="flex items-center gap-2 text-[15px] font-semibold text-destructive hover:bg-destructive/10 px-5 py-2.5 rounded-xl active:scale-[0.98] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive focus-visible:ring-offset-2"
               >
                 <RotateCcw size={14} />
                 REINICIAR
@@ -930,7 +951,7 @@ export default function WizardPage() {
 
               <button
                 onClick={avancar}
-                className="flex items-center gap-2 text-[15px] font-semibold text-white px-7 py-2.5 rounded-xl bg-[#007AFF] hover:bg-[#0066DD] active:scale-[0.98] shadow-[0_2px_8px_rgba(0,122,255,0.28)] hover:shadow-[0_4px_12px_rgba(0,122,255,0.35)] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#007AFF] focus-visible:ring-offset-2"
+                className="flex items-center gap-2 text-[15px] font-semibold text-white px-7 py-2.5 rounded-xl bg-primary hover:bg-primary/90 active:scale-[0.98] shadow-[0_2px_8px_rgba(0,122,255,0.28)] hover:shadow-[0_4px_12px_rgba(0,122,255,0.35)] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               >
                 {etapa >= categorias.length - 1 ? (
                   <>
@@ -959,24 +980,25 @@ export default function WizardPage() {
             {alertasAgregados.length > 0 ? (
               <AlertasAgregadosPanel alertas={alertasAgregados} />
             ) : (
-              <div className="bg-white border-[1.5px] border-dashed border-[#D1D1D6] rounded-2xl p-6 text-center">
-                <div className="w-12 h-12 bg-[#F5F5F7] border border-[#E5E5EA] rounded-2xl flex items-center justify-center mx-auto mb-3">
+              <Card className="rounded-2xl ring-0 border-[1.5px] border-dashed border-tertiary/40 bg-transparent p-6 text-center">
+                <div className="w-12 h-12 bg-muted border border-border rounded-2xl flex items-center justify-center mx-auto mb-3">
                   <svg
                     width="20"
                     height="20"
                     viewBox="0 0 24 24"
                     fill="none"
-                    stroke="#AEAEB2"
+                    stroke="currentColor"
+                    className="text-tertiary"
                     strokeWidth="2"
                   >
                     <path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18" />
                   </svg>
                 </div>
-                <p className="text-[13px] font-semibold text-[#1D1D1F] mb-1.5">Análise da Build</p>
-                <p className="text-[12px] text-[#AEAEB2] leading-relaxed">
+                <p className="text-[13px] font-semibold text-foreground mb-1.5">Análise da Build</p>
+                <p className="text-[12px] text-tertiary leading-relaxed">
                   O relatório de compatibilidade detalhado e restrições CSP aparecerão aqui.
                 </p>
-              </div>
+              </Card>
             )}
           </aside>
         </div>

@@ -15,19 +15,21 @@ export default function CaracteristicasPage() {
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
 
+  async function carregarDados() {
+    try {
+      const [car, cat] = await Promise.all([api.listarCaracteristicas(), api.listarCategorias()]);
+      setCaracteristicas(car);
+      setCategorias(cat);
+    } catch {
+      setErro('Falha ao carregar características');
+    } finally {
+      setCarregando(false);
+    }
+  }
+
   useEffect(() => {
-    let cancelado = false;
-    Promise.all([api.listarCaracteristicas(), api.listarCategorias()])
-      .then(([car, cat]) => {
-        if (cancelado) return;
-        setCaracteristicas(car);
-        setCategorias(cat);
-      })
-      .catch(() => !cancelado && setErro('Falha ao carregar características'))
-      .finally(() => !cancelado && setCarregando(false));
-    return () => {
-      cancelado = true;
-    };
+    carregarDados();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const categoriaNome = (categoriaId: string) =>
@@ -37,8 +39,13 @@ export default function CaracteristicasPage() {
     setErro(null);
     try {
       await api.excluirCaracteristica(id);
-      setCaracteristicas((prev) => prev.filter((c) => c.id !== id));
+      await carregarDados();
     } catch (e) {
+      if (e instanceof ApiError && e.status === 404) {
+        setErro('Este item já havia sido removido. A lista foi atualizada.');
+        await carregarDados();
+        return;
+      }
       setErro(e instanceof ApiError ? e.message : 'Falha ao excluir característica');
     }
   }

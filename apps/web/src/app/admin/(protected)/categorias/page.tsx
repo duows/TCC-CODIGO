@@ -14,24 +14,33 @@ export default function CategoriasPage() {
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
 
+  async function carregarCategorias() {
+    try {
+      const r = await api.listarCategorias();
+      setCategorias(r);
+    } catch {
+      setErro('Falha ao carregar categorias');
+    } finally {
+      setCarregando(false);
+    }
+  }
+
   useEffect(() => {
-    let cancelado = false;
-    api
-      .listarCategorias()
-      .then((r) => !cancelado && setCategorias(r))
-      .catch(() => !cancelado && setErro('Falha ao carregar categorias'))
-      .finally(() => !cancelado && setCarregando(false));
-    return () => {
-      cancelado = true;
-    };
+    carregarCategorias();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function excluir(id: string) {
     setErro(null);
     try {
       await api.excluirCategoria(id);
-      setCategorias((prev) => prev.filter((c) => c.id !== id));
+      await carregarCategorias();
     } catch (e) {
+      if (e instanceof ApiError && e.status === 404) {
+        setErro('Este item já havia sido removido. A lista foi atualizada.');
+        await carregarCategorias();
+        return;
+      }
       setErro(e instanceof ApiError ? e.message : 'Falha ao excluir categoria');
     }
   }

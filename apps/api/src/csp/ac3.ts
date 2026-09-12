@@ -9,7 +9,8 @@
  *     3rd ed. Prentice Hall. (Capítulo 6 — Constraint Satisfaction Problems)
  *
  * Mapeamento ao TCC:
- *   - Seção 2.6 (Propagação de Restrições e Algoritmo AC-3)
+ *   - Seção 2.6 (Propagação de Restrições e Algoritmo AC-3), formalizado em
+ *     pseudocódigo na Subseção 6.3.2
  *   - RF-05  (Executar propagação de restrições via AC-3)
  *   - RF-09  (Propagar restrições incrementalmente a cada seleção)
  *   - RNF-01 (Tempo de resposta < 500ms)
@@ -17,7 +18,9 @@
  *   - RNF-10 (Determinismo)
  * =============================================================================
  *
- * VISÃO GERAL DO ALGORITMO (pseudocódigo de Russell & Norvig, p. 209):
+ * FORMA CANÔNICA NA LITERATURA (Russell & Norvig, p. 209), apresentada para
+ * contraste — a implementação abaixo NÃO segue este pseudocódigo à risca;
+ * ver "Desvios deliberados" logo adiante:
  *
  *   function AC-3(csp) returns false if inconsistency found else true
  *     queue ← all arcs in csp
@@ -28,6 +31,23 @@
  *         for each Xk in Neighbors(Xi) - {Xj} do
  *           add (Xk, Xi) to queue
  *     return true
+ *
+ * DESVIOS DELIBERADOS DESTA IMPLEMENTAÇÃO em relação à forma canônica acima:
+ *   - Revisar (`revisar()`) devolve a lista de valores removidos — cada um com
+ *     a restrição violada e um representante do domínio vizinho — e não um
+ *     booleano. É esse registro que alimenta a explanation facility (RNF-13).
+ *   - A propagação NÃO é interrompida quando um domínio esvazia. Domínio
+ *     vazio não é tratado como falha, e sim como ausência de componente
+ *     compatível naquela categoria, que deve ser comunicada ao usuário junto
+ *     das demais podas.
+ *   - Existe verificação de domínio vazio ANTES da propagação, ausente na
+ *     forma canônica.
+ *   - Quando o domínio da variável de origem esvazia, os arcos vizinhos não
+ *     são reinseridos na fila, interrompendo a propagação a partir daquela
+ *     variável.
+ *   - A fila é uma lista e admite reinserção de um arco já enfileirado,
+ *     enquanto Mackworth (1977) especifica a fila como conjunto. Isso produz
+ *     revisões redundantes sem alterar o resultado.
  *
  * Esta implementação é PURA: opera apenas sobre estruturas em memória
  * (sem I/O, sem Prisma), viabilizando testes unitários determinísticos

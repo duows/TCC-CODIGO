@@ -3,7 +3,8 @@
  *
  * Cobrem os 3 cenários mínimos do TCC:
  *   1) poda de valores sem suporte na variável vizinha (RF-05);
- *   2) detecção de inconsistência quando um domínio fica vazio (Seção 2.6);
+ *   2) detecção de inconsistência quando um domínio fica vazio (Seção 2.6,
+ *      formalizada na Subseção 6.3.2);
  *   3) determinismo de execução (RNF-10).
  *
  * Fixtures são construídos manualmente com o modelo genérico EAV,

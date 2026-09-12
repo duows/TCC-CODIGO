@@ -113,24 +113,16 @@ Retorna `RespostaValidacao` com domínios podados e justificativas educativas.
 
 | Conceito do TCC                          | Arquivo                                          |
 |------------------------------------------|--------------------------------------------------|
-| Modelo de Domínio (Seção 5.5)            | `packages/shared-types/src/index.ts`             |
+| Modelo de Domínio (Seção 5.4)            | `packages/shared-types/src/index.ts`             |
 | Base de conhecimento (RF-17)             | `apps/api/prisma/schema.prisma`                  |
 | Tripla CSP `<X, D, C>` (Seção 2.2)       | `apps/api/src/csp/types.ts` + `csp.service.ts`   |
-| **Algoritmo AC-3 (Seção 2.6)**           | `apps/api/src/csp/ac3.ts` **← IMPLEMENTAR**      |
-| Avaliação de restrições                  | `apps/api/src/csp/constraint-evaluator.ts` **← IMPLEMENTAR** |
-| Explanation Facility (Seção 2.7.1)       | `apps/api/src/explanations/` **← IMPLEMENTAR**   |
+| Algoritmo AC-3 (Seção 2.6, formalizado na Subseção 6.3.2) | `apps/api/src/csp/ac3.ts` |
+| Avaliação de restrições                  | `apps/api/src/csp/constraint-evaluator.ts`       |
+| Explanation Facility (Seção 2.7.1)       | `apps/api/src/explanations/`                     |
 | Interface wizard (RF-02)                 | `apps/web/src/app/wizard/page.tsx`               |
 | Arquitetura em camadas (Seção 2.9.3)     | divisão `apps/web` ↔ `apps/api` ↔ Prisma         |
-
-## Próximos passos
-
-Veja os `TODO HENRIQUE` espalhados pelos arquivos abaixo, nesta ordem:
-
-1. **`apps/api/prisma/seed.ts`** — popule com CPUs/placas/RAM AM4 e AM5, GPUs e fontes
-2. **`apps/api/src/csp/constraint-evaluator.ts`** — implemente `avaliarRestricao()`
-3. **`apps/api/src/csp/ac3.ts`** — implemente `ac3()`, `inicializarFila()`, `revisar()`
-4. **`apps/api/src/explanations/explanations.service.ts`** — gere as justificativas
-5. **`apps/web/src/app/wizard/page.tsx`** — expanda a UI conforme RF-03/14/15/16
+| Módulo administrativo (RF-21 a RF-26)    | `apps/api/src/auth/`, `marcas/`, `categorias/`, `caracteristicas/`, `components/`, `restricoes/` |
+| Módulo de benchmark (Capítulo 10)        | `apps/api/scripts/benchmark/`                    |
 
 ## Convenções
 

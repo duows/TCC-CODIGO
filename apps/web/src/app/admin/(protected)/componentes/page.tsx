@@ -41,26 +41,35 @@ function ComponentesPageInner() {
 
   const categoriaId = categoriaIdParam ?? categorias[0]?.id ?? '';
 
+  async function carregarComponentes(catId: string) {
+    setCarregando(true);
+    try {
+      const r = await api.listarComponentes(catId);
+      setComponentes(r);
+    } catch {
+      setErro('Falha ao carregar componentes');
+    } finally {
+      setCarregando(false);
+    }
+  }
+
   useEffect(() => {
     if (!categoriaId) return;
-    let cancelado = false;
-    setCarregando(true);
-    api
-      .listarComponentes(categoriaId)
-      .then((r) => !cancelado && setComponentes(r))
-      .catch(() => !cancelado && setErro('Falha ao carregar componentes'))
-      .finally(() => !cancelado && setCarregando(false));
-    return () => {
-      cancelado = true;
-    };
+    carregarComponentes(categoriaId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categoriaId]);
 
   async function excluir(id: string) {
     setErro(null);
     try {
       await api.excluirComponente(id);
-      setComponentes((prev) => prev.filter((c) => c.id !== id));
+      await carregarComponentes(categoriaId);
     } catch (e) {
+      if (e instanceof ApiError && e.status === 404) {
+        setErro('Este item já havia sido removido. A lista foi atualizada.');
+        await carregarComponentes(categoriaId);
+        return;
+      }
       setErro(e instanceof ApiError ? e.message : 'Falha ao excluir componente');
     }
   }
