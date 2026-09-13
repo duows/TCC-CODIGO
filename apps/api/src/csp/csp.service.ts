@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { ComponentsService } from '../components/components.service';
+import { ComponentesService } from '../componentes/componentes.service';
 import { ExplanationsService } from '../explanations/explanations.service';
 import { ac3 } from './ac3';
 import type { RestricaoInterna, VariavelCSP, ValorRemovido } from './types';
@@ -32,7 +32,7 @@ import type {
 export class CspService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly components: ComponentsService,
+    private readonly componentes: ComponentesService,
     private readonly explanations: ExplanationsService,
   ) {}
 
@@ -293,10 +293,10 @@ export class CspService {
 
       let componentes;
       if (idAtribuido) {
-        const c = await this.components.buscarPorId(idAtribuido);
+        const c = await this.componentes.buscarPorId(idAtribuido);
         componentes = c ? [c] : [];
       } else {
-        componentes = await this.components.listarPorCategoriaId(cat.id);
+        componentes = await this.componentes.listarPorCategoriaId(cat.id);
       }
 
       const dominio = new Map<string, (typeof componentes)[number]>();

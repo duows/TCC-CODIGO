@@ -1,12 +1,12 @@
 /**
- * Testes unitários da parte de escrita do ComponentsService: validação do
+ * Testes unitários da parte de escrita do ComponentesService: validação do
  * conjunto de características EAV e upsert transacional.
  */
 
 import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from '../prisma/prisma.service';
-import { ComponentsService } from './components.service';
+import { ComponentesService } from './componentes.service';
 
 const CATEGORIA_ID = 'cat-cpu';
 const MARCA_ID = 'marca-amd';
@@ -31,7 +31,7 @@ function mkComponenteRow(id: string) {
   };
 }
 
-describe('ComponentsService (escrita)', () => {
+describe('ComponentesService (escrita)', () => {
   async function mkService(overrides: {
     categoriaExiste?: boolean;
     marcaExiste?: boolean;
@@ -69,11 +69,11 @@ describe('ComponentsService (escrita)', () => {
     };
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [ComponentsService, { provide: PrismaService, useValue: prisma }],
+      providers: [ComponentesService, { provide: PrismaService, useValue: prisma }],
     }).compile();
 
     return {
-      service: module.get(ComponentsService),
+      service: module.get(ComponentesService),
       componenteCreate,
       componenteCaracteristicaCreateMany,
       componenteCaracteristicaDeleteMany,

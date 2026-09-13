@@ -1,14 +1,14 @@
 import { Body, Controller, Delete, Get, Param, NotFoundException, Post, Put, UseGuards } from '@nestjs/common';
-import { ComponentsService } from './components.service';
+import { ComponentesService } from './componentes.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { CreateComponenteDto, UpdateComponenteDto } from './component.dto';
+import { CreateComponenteDto, UpdateComponenteDto } from './componente.dto';
 
-@Controller('components')
-export class ComponentsController {
-  constructor(private readonly service: ComponentsService) {}
+@Controller('componentes')
+export class ComponentesController {
+  constructor(private readonly service: ComponentesService) {}
 
   /**
-   * GET /api/components/:categoriaId
+   * GET /api/componentes/:categoriaId
    * RF-01 — Listar componentes por categoria.
    * O parâmetro é o UUID da categoria (lido de GET /api/categorias).
    */
@@ -18,7 +18,7 @@ export class ComponentsController {
   }
 
   /**
-   * GET /api/components/:categoriaId/:id
+   * GET /api/componentes/:categoriaId/:id
    * RF-04 — Exibir especificações técnicas de um componente.
    */
   @Get(':categoriaId/:id')

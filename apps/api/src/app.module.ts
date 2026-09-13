@@ -3,7 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { CategoriasModule } from './categorias/categorias.module';
-import { ComponentsModule } from './components/components.module';
+import { ComponentesModule } from './componentes/componentes.module';
 import { CspModule } from './csp/csp.module';
 import { ExplanationsModule } from './explanations/explanations.module';
 import { ConfigurationsModule } from './configurations/configurations.module';
@@ -20,7 +20,7 @@ import { CaracteristicasModule } from './caracteristicas/caracteristicas.module'
     PrismaModule,
     AuthModule,
     CategoriasModule,
-    ComponentsModule,
+    ComponentesModule,
     CspModule,
     ExplanationsModule,
     ConfigurationsModule,

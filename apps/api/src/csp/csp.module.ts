@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { CspService } from './csp.service';
-import { ComponentsModule } from '../components/components.module';
+import { ComponentesModule } from '../componentes/componentes.module';
 import { ExplanationsModule } from '../explanations/explanations.module';
 
 @Module({
-  imports: [ComponentsModule, ExplanationsModule],
+  imports: [ComponentesModule, ExplanationsModule],
   providers: [CspService],
   exports: [CspService],
 })

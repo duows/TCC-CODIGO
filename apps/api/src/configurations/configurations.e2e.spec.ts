@@ -8,9 +8,9 @@
  * supertest, PrismaService sobrescrito por um duplo de teste. Nenhum Postgres
  * real é necessário.
  *
- * Como ComponentsService roda de verdade neste teste (só PrismaService é
+ * Como ComponentesService roda de verdade neste teste (só PrismaService é
  * mockado), o mock do Prisma devolve o formato de linha EAV joined que
- * ComponentsService.mapToComponente espera — marca: { nome } e
+ * ComponentesService.mapToComponente espera — marca: { nome } e
  * caracteristicas: [{ caracteristicaId, valor, caracteristica: { id, nome, tipo } }]
  * — diferente do shape `Componente` plano usado em csp.service.spec.ts.
  *
@@ -112,7 +112,7 @@ const RESTRICOES_MOCK = [
 
 // ---------------------------------------------------------------------------
 // Componentes no shape de linha real do Prisma (ComponenteComRelacoes, ver
-// ComponentsService.mapToComponente) — não o shape plano `Componente`.
+// ComponentesService.mapToComponente) — não o shape plano `Componente`.
 // ---------------------------------------------------------------------------
 
 type ComponenteRow = {
@@ -189,7 +189,7 @@ const COMPONENTES_MOCK: ComponenteRow[] = [
 
 // ---------------------------------------------------------------------------
 // Duplo de teste do PrismaService — apenas os métodos realmente exercitados
-// pelo caminho CspService → ComponentsService no fluxo de validação.
+// pelo caminho CspService → ComponentesService no fluxo de validação.
 // ---------------------------------------------------------------------------
 
 const prismaMock = {

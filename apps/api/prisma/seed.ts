@@ -14,7 +14,7 @@ import { PrismaClient, TipoCaracteristica, OperadorRestricao } from '@prisma/cli
 
 const prisma = new PrismaClient();
 
-async function main() {
+export async function main() {
   console.log('Iniciando seed da base de conhecimento...');
 
   // ---------------------------------------------------------------------------
@@ -427,11 +427,13 @@ async function main() {
   console.log('Seed concluído.');
 }
 
-main()
-  .catch((e) => {
-    console.error('Erro no seed:', e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+if (require.main === module) {
+  main()
+    .catch((e) => {
+      console.error('Erro no seed:', e);
+      process.exit(1);
+    })
+    .finally(async () => {
+      await prisma.$disconnect();
+    });
+}

@@ -2,7 +2,7 @@ import { BadRequestException, ConflictException, Injectable, NotFoundException }
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import type { Componente, CaracteristicaValor } from '@hardware-csp/shared-types';
-import type { CreateComponenteDto, UpdateComponenteDto } from './component.dto';
+import type { CreateComponenteDto, UpdateComponenteDto } from './componente.dto';
 
 type ComponenteComRelacoes = {
   id: string;
@@ -48,7 +48,7 @@ const incluirRelacoes = {
  * Adicionar uma nova categoria ou atributo não requer alteração aqui.
  */
 @Injectable()
-export class ComponentsService {
+export class ComponentesService {
   constructor(private readonly prisma: PrismaService) {}
 
   async listarPorCategoriaId(categoriaId: string): Promise<Componente[]> {

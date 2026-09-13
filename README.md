@@ -32,7 +32,7 @@ hardware-csp/
 │   │   │   ├── schema.prisma   # Base de conhecimento (RF-17)
 │   │   │   └── seed.ts         # Database Seeding (RF-18)
 │   │   └── src/
-│   │       ├── components/     # Catálogo (RF-01, RF-04)
+│   │       ├── componentes/    # Catálogo (RF-01, RF-04)
 │   │       ├── csp/            # Motor AC-3 (RF-05, RF-09)  ◄── coração
 │   │       ├── explanations/   # Justificativas (RF-10–13)
 │   │       ├── configurations/ # Endpoint POST /validate
@@ -89,12 +89,42 @@ pnpm dev
 - Web: <http://localhost:3000>
 - Prisma Studio (inspeção do banco): `pnpm db:studio`
 
+## Testes de integração
+
+A suíte padrão (`pnpm test`) usa apenas `PrismaService` mockado — nenhum banco é
+necessário para rodá-la. Existe uma segunda suíte, opcional, que roda contra um
+PostgreSQL real (RF-17/18/19 — persistência e seeding da base de conhecimento),
+usando o mesmo Postgres do `docker-compose.yml`, mas um banco de teste descartável e
+separado do banco de desenvolvimento (`hardware_csp_test`, nunca `hardware_csp`):
+
+```bash
+# 1) Subir o PostgreSQL (mesmo container usado em desenvolvimento)
+pnpm db:up
+
+# 2) Criar o banco de teste uma única vez (nome diferente do banco de dev!)
+docker exec -it hardware-csp-postgres psql -U hardware_csp -c "CREATE DATABASE hardware_csp_test;"
+
+# 3) Configurar o ambiente de teste
+cp apps/api/.env.test.example apps/api/.env.test
+
+# 4) Aplicar as migrações no banco de teste
+pnpm --filter @hardware-csp/api prisma:deploy:test
+
+# 5) Rodar a suíte de integração
+pnpm --filter @hardware-csp/api test:integration
+```
+
+Os arquivos `*.integration-spec.ts` nunca são coletados por `pnpm test` (o Jest padrão
+os ignora explicitamente via `testPathIgnorePatterns`, e eles rodam sob uma config
+separada, `jest.integration.config.js`) — rodar a suíte principal nunca depende de
+Docker nem escreve em nenhum banco.
+
 ## Endpoints da API
 
 | Método | Rota                              | Requisito | Descrição                          |
 |--------|-----------------------------------|-----------|------------------------------------|
-| GET    | `/api/components/:categoria`      | RF-01     | Lista componentes de uma categoria |
-| GET    | `/api/components/:categoria/:id`  | RF-04     | Especificações técnicas de um item |
+| GET    | `/api/componentes/:categoria`     | RF-01     | Lista componentes de uma categoria |
+| GET    | `/api/componentes/:categoria/:id` | RF-04     | Especificações técnicas de um item |
 | POST   | `/api/configurations/validate`    | RF-05, RF-09 | Roda AC-3 sobre o estado atual  |
 
 Categorias válidas: `CPU`, `PLACA_MAE`, `RAM`, `GPU`, `FONTE`.
@@ -121,7 +151,7 @@ Retorna `RespostaValidacao` com domínios podados e justificativas educativas.
 | Explanation Facility (Seção 2.7.1)       | `apps/api/src/explanations/`                     |
 | Interface wizard (RF-02)                 | `apps/web/src/app/wizard/page.tsx`               |
 | Arquitetura em camadas (Seção 2.9.3)     | divisão `apps/web` ↔ `apps/api` ↔ Prisma         |
-| Módulo administrativo (RF-21 a RF-26)    | `apps/api/src/auth/`, `marcas/`, `categorias/`, `caracteristicas/`, `components/`, `restricoes/` |
+| Módulo administrativo (RF-21 a RF-26)    | `apps/api/src/auth/`, `marcas/`, `categorias/`, `caracteristicas/`, `componentes/`, `restricoes/` |
 | Módulo de benchmark (Capítulo 10)        | `apps/api/scripts/benchmark/`                    |
 
 ## Convenções

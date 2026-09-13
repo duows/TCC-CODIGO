@@ -105,11 +105,11 @@ export const api = {
   },
 
   async listarComponentes(categoriaId: string): Promise<Componente[]> {
-    return request<Componente[]>(`/components/${categoriaId}`);
+    return request<Componente[]>(`/componentes/${categoriaId}`);
   },
 
   async buscarComponente(categoriaId: string, id: string): Promise<Componente> {
-    return request<Componente>(`/components/${categoriaId}/${id}`);
+    return request<Componente>(`/componentes/${categoriaId}/${id}`);
   },
 
   async validarConfiguracao(
@@ -199,15 +199,15 @@ export const api = {
   // ---------------------------------------------------------------------
 
   async criarComponente(dto: CriarComponenteDto): Promise<Componente> {
-    return request<Componente>('/components', { method: 'POST', body: dto, auth: true });
+    return request<Componente>('/componentes', { method: 'POST', body: dto, auth: true });
   },
 
   async atualizarComponente(id: string, dto: AtualizarComponenteDto): Promise<Componente> {
-    return request<Componente>(`/components/${id}`, { method: 'PUT', body: dto, auth: true });
+    return request<Componente>(`/componentes/${id}`, { method: 'PUT', body: dto, auth: true });
   },
 
   async excluirComponente(id: string): Promise<void> {
-    return request<void>(`/components/${id}`, { method: 'DELETE', auth: true });
+    return request<void>(`/componentes/${id}`, { method: 'DELETE', auth: true });
   },
 
   // ---------------------------------------------------------------------

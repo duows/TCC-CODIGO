@@ -2,7 +2,7 @@
  * Testes de integração do CspService (camada de orquestração).
  *
  * Estratégia: real CspService + real ExplanationsService; PrismaService e
- * ComponentsService mockados com jest.fn().
+ * ComponentesService mockados com jest.fn().
  *
  * Cobre o cenário canônico do TCC: 5 componentes totalmente incompatíveis,
  * verificando que a complementação simétrica produz as justificativas corretas
@@ -26,16 +26,16 @@
  *   prisma.categoria.findMany({ orderBy: { ordem: 'asc' } })
  * e lê: cat.id, cat.ordem.
  * Para cada categoria com idAtribuido no estado:
- *   components.buscarPorId(idAtribuido) → Componente | null
+ *   componentes.buscarPorId(idAtribuido) → Componente | null
  * Para categorias sem seleção:
- *   components.listarPorCategoriaId(cat.id) → Componente[]
+ *   componentes.listarPorCategoriaId(cat.id) → Componente[]
  */
 
 import { Test, TestingModule } from '@nestjs/testing';
 import { CspService } from './csp.service';
 import { ExplanationsService } from '../explanations/explanations.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { ComponentsService } from '../components/components.service';
+import { ComponentesService } from '../componentes/componentes.service';
 import type { Componente, EstadoConfiguracao } from '@hardware-csp/shared-types';
 
 // ---------------------------------------------------------------------------
@@ -190,7 +190,7 @@ describe('CspService — cenário 5 componentes incompatíveis', () => {
           },
         },
         {
-          provide: ComponentsService,
+          provide: ComponentesService,
           useValue: {
             buscarPorId: jest.fn((id: string) =>
               Promise.resolve(COMPONENTES_BY_ID[id] ?? null),
@@ -374,7 +374,7 @@ describe('CspService — verificação agregada de potência (pós-condição)',
           },
         },
         {
-          provide: ComponentsService,
+          provide: ComponentesService,
           useValue: {
             buscarPorId: jest.fn((id: string) =>
               Promise.resolve(AGG_COMPONENTES_BY_ID[id] ?? null),
@@ -491,7 +491,7 @@ describe('CspService — grupo de capacidade com uma única restrição', () => 
           },
         },
         {
-          provide: ComponentsService,
+          provide: ComponentesService,
           useValue: {
             buscarPorId: jest.fn((id: string) =>
               Promise.resolve(SINGLE_COMPONENTES_BY_ID[id] ?? null),
