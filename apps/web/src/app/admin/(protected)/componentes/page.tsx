@@ -109,7 +109,7 @@ function ComponentesPageInner() {
             <TableRow>
               <TableHead>Nome</TableHead>
               <TableHead>Marca</TableHead>
-              <TableHead className="w-[160px] text-right">Ações</TableHead>
+              <TableHead className="w-[160px] text-right sticky right-0 z-10 bg-white">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -117,7 +117,7 @@ function ComponentesPageInner() {
               <TableRow key={c.id}>
                 <TableCell>{c.nome}</TableCell>
                 <TableCell>{c.marcaNome}</TableCell>
-                <TableCell className="flex justify-end gap-1">
+                <TableCell className="flex justify-end gap-1 sticky right-0 z-10 bg-white group-hover:bg-muted/50">
                   <Button variant="ghost" size="sm" asChild>
                     <Link href={`/admin/componentes/${categoriaId}/${c.id}`}>Editar</Link>
                   </Button>

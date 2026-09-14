@@ -61,14 +61,14 @@ export default function MarcasPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Nome</TableHead>
-              <TableHead className="w-[160px] text-right">Ações</TableHead>
+              <TableHead className="w-[160px] text-right sticky right-0 z-10 bg-white">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {marcas.map((marca) => (
               <TableRow key={marca.id}>
                 <TableCell>{marca.nome}</TableCell>
-                <TableCell className="flex justify-end gap-1">
+                <TableCell className="flex justify-end gap-1 sticky right-0 z-10 bg-white group-hover:bg-muted/50">
                   <Button variant="ghost" size="sm" asChild>
                     <Link href={`/admin/marcas/${marca.id}`}>Editar</Link>
                   </Button>

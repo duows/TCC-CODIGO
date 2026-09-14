@@ -78,7 +78,7 @@ export default function RestricoesPage() {
               <TableHead>Operador</TableHead>
               <TableHead>Característica 2 (capacidade)</TableHead>
               <TableHead>Parametro</TableHead>
-              <TableHead className="w-[160px] text-right">Ações</TableHead>
+              <TableHead className="w-[160px] text-right sticky right-0 z-10 bg-white">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -103,7 +103,7 @@ export default function RestricoesPage() {
                     </span>
                   </TableCell>
                   <TableCell>{r.parametro ?? '—'}</TableCell>
-                  <TableCell className="flex justify-end gap-1">
+                  <TableCell className="flex justify-end gap-1 sticky right-0 z-10 bg-white group-hover:bg-muted/50">
                     <Button variant="ghost" size="sm" asChild>
                       <Link href={`/admin/restricoes/${r.id}`}>Editar</Link>
                     </Button>

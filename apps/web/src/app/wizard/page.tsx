@@ -876,7 +876,7 @@ export default function WizardPage() {
       ) : (
         /* Wizard step */
         <div
-          className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 px-4 sm:px-6 lg:px-32 py-8 max-w-[1440px] mx-auto items-start"
+          className="grid grid-cols-1 md:grid-cols-[1fr_380px] gap-6 px-4 sm:px-6 lg:px-32 py-8 max-w-[1440px] mx-auto items-start"
         >
           {/* ── Main column ─────────────────────────────────────────────── */}
           <main>

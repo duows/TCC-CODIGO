@@ -10,6 +10,7 @@
     "start:prod": "node dist/main",
     "benchmark": "ts-node --transpile-only scripts/benchmark/harness.ts",
     "benchmark:tables": "ts-node --transpile-only scripts/benchmark/tables.ts",
+    "benchmark:expoente": "ts-node --transpile-only scripts/benchmark/growth-exponent.ts",
     "lint": "eslint \"{src,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",
